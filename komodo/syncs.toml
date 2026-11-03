@@ -475,12 +475,3 @@ linked_repo = "docker"
 resource_path = ["komodo/syncs.toml"]
 managed = true
 delete = true
-
-##
-
-[[resource_sync]]
-name = "ressources sync"
-[resource_sync.config]
-linked_repo = "homelab"
-resource_path = ["stacks/komodo/syncs.toml"]
-managed = true
