@@ -1,0 +1,118 @@
+services:
+    mongo:
+        image: mongo:9.0.4@sha256:452bdaf2127b8ff851e31410a267809b9829eded219979f2210e7c7efb85a058
+        labels:
+            komodo.skip:
+        command: --quiet --wiredTigerCacheSizeGB 0.25
+        volumes:
+        - type: volume
+          source: komodo_db
+          target: /data/db
+        environment:
+        - MONGO_INITDB_ROOT_USERNAME=komodo
+        - MONGO_INITDB_ROOT_PASSWORD_FILE=/run/secrets/komodo_db_password
+        secrets:
+        - komodo_db_password
+        networks:
+            komodo-net:
+        deploy:
+            replicas: 1
+            placement:
+                constraints:
+                - node.labels.tier == database
+            update_config:
+                parallelism: 1
+                delay: 10s
+                failure_action: rollback
+                order: stop-first
+            rollback_config:
+                parallelism: 1
+            restart_policy:
+                condition: any
+                delay: 10s
+                max_attempts: 0
+                window: 120s
+            resources:
+                limits:
+                    memory: 512M
+        healthcheck:
+            test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+            interval: 30s
+            timeout: 10s
+            start_period: 30s
+            retries: 3
+
+    core:
+        image: ghcr.io/moghtech/komodo-core:2@sha256:bca73d0eee143066228fb9b80c38a5a2726e573ad2758f7aa92b5c91a8aef1c7
+        env_file:
+        - ./core.env
+        environment:
+        - TZ=${TZ:?}
+        secrets:
+        - komodo_db_password
+        - komodo_oidc_secret
+        - komodo_webhook_secret
+        - komodo_private_key
+        networks:
+            komodo-net:
+            traefik-public:
+                aliases:
+                - komodo
+        healthcheck:
+            test: curl -f http://127.0.0.1:9120 || exit 1
+            interval: 30s
+            timeout: 10s
+            start_period: 30s
+            retries: 3
+        deploy:
+            replicas: 1
+            placement:
+                constraints:
+                - node.labels.tier == infra
+            update_config:
+                parallelism: 1
+                delay: 10s
+                failure_action: rollback
+                order: start-first
+            rollback_config:
+                parallelism: 1
+            restart_policy:
+                condition: any
+                delay: 10s
+                max_attempts: 0
+                window: 120s
+            resources:
+                limits:
+                    memory: 512M
+            labels:
+            - traefik.enable=true
+            - traefik.http.routers.komodo.rule=Host(`komodo.macopla.com`) && !PathPrefix(`/listener/`)
+            - traefik.http.routers.komodo.entrypoints=websecure
+            - traefik.http.services.komodo.loadbalancer.server.port=9120
+            - traefik.http.routers.komodo.middlewares=local-only@file
+            - traefik.http.routers.komodo-webhooks.rule=Host(`komodo.macopla.com`) && PathPrefix(`/listener/`)
+            - traefik.http.routers.komodo-webhooks.entrypoints=websecure
+            - traefik.http.routers.komodo-webhooks.service=komodo
+
+volumes:
+    komodo_db:
+        driver_opts:
+            type: none
+            o: bind
+            device: /data/komodo/db
+
+secrets:
+    komodo_db_password:
+        external: true
+    komodo_oidc_secret:
+        external: true
+    komodo_webhook_secret:
+        external: true
+    komodo_private_key:
+        external: true
+
+networks:
+    traefik-public:
+        external: true
+    komodo-net:
+        driver: overlay
