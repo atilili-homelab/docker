@@ -412,6 +412,7 @@ image_registry = [
 [[repo]]
 name = "docker"
 [repo.config]
+server = "neo"
 git_provider = "forge.macopla.com"
 git_account = "komodo"
 repo = "homelab/docker"
