@@ -15,7 +15,7 @@ enabled = true
 [[server]]
 name = "link"
 [server.config]
-enabled       = true
+enabled = true
 ignore_mounts = ["/mnt/UNIFIED"]
 
 ##
@@ -23,7 +23,7 @@ ignore_mounts = ["/mnt/UNIFIED"]
 [[server]]
 name = "merovingian"
 [server.config]
-enabled       = true
+enabled = true
 ignore_mounts = ["/mnt/UNIFIED"]
 
 ##
@@ -38,7 +38,7 @@ enabled = true
 [[server]]
 name = "mouse"
 [server.config]
-enabled         = true
+enabled = true
 send_cpu_alerts = false
 send_mem_alerts = false
 
@@ -47,8 +47,8 @@ send_mem_alerts = false
 [[server]]
 name = "neo"
 [server.config]
-enabled      = true
-mem_warning  = 90.0
+enabled = true
+mem_warning = 90.0
 mem_critical = 99.0
 
 ##
@@ -70,8 +70,8 @@ enabled = true
 [[server]]
 name = "persephone"
 [server.config]
-enabled      = true
-mem_warning  = 90.0
+enabled = true
+mem_warning = 90.0
 mem_critical = 99.0
 
 ##
@@ -79,8 +79,8 @@ mem_critical = 99.0
 [[server]]
 name = "seraph"
 [server.config]
-enabled      = true
-mem_warning  = 90.0
+enabled = true
+mem_warning = 90.0
 mem_critical = 99.0
 
 ##
@@ -88,8 +88,8 @@ mem_critical = 99.0
 [[server]]
 name = "trinity"
 [server.config]
-enabled      = true
-mem_warning  = 90.0
+enabled = true
+mem_warning = 90.0
 mem_critical = 99.0
 
 ##
@@ -97,7 +97,7 @@ mem_critical = 99.0
 [[swarm]]
 name = "Prod Swarm"
 [swarm.config]
-servers               = ["neo", "morpheus", "trinity"]
+servers = ["neo", "morpheus", "trinity"]
 send_unhealthy_alerts = true
 
 ##
@@ -105,8 +105,8 @@ send_unhealthy_alerts = true
 [[stack]]
 name = "authentik"
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/authentik"
 
 ##
@@ -114,8 +114,8 @@ run_directory = "stacks/authentik"
 [[stack]]
 name = "bazarr"
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/bazarr"
 
 ##
@@ -123,8 +123,8 @@ run_directory = "stacks/bazarr"
 [[stack]]
 name = "bookshelf"
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/bookshelf"
 
 ##
@@ -132,8 +132,8 @@ run_directory = "stacks/bookshelf"
 [[stack]]
 name = "bookstack"
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/bookstack"
 
 ##
@@ -141,8 +141,8 @@ run_directory = "stacks/bookstack"
 [[stack]]
 name = "cinesync"
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/cinesync"
 
 ##
@@ -150,8 +150,8 @@ run_directory = "stacks/cinesync"
 [[stack]]
 name = "cloudflare-ddns"
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/cloudflare-ddns"
 
 ##
@@ -159,8 +159,8 @@ run_directory = "stacks/cloudflare-ddns"
 [[stack]]
 name = "crowdsec"
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/crowdsec"
 
 ##
@@ -168,8 +168,8 @@ run_directory = "stacks/crowdsec"
 [[stack]]
 name = "forgejo"
 [stack.config]
-server        = "controlplane"
-linked_repo   = "homelab"
+server = "controlplane"
+linked_repo = "homelab"
 run_directory = "stacks/forgejo"
 
 ##
@@ -190,8 +190,8 @@ GATUS_PUSH_TOKEN=[[gatus_push_token]]
 [[stack]]
 name = "homarr"
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/homarr"
 
 ##
@@ -199,8 +199,8 @@ run_directory = "stacks/homarr"
 [[stack]]
 name = "immich"
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/immich"
 
 ##
@@ -208,8 +208,8 @@ run_directory = "stacks/immich"
 [[stack]]
 name = "jellyfin"
 [stack.config]
-server        = "link"
-linked_repo   = "homelab"
+server = "link"
+linked_repo = "homelab"
 run_directory = "stacks/jellyfin"
 
 ##
@@ -217,8 +217,8 @@ run_directory = "stacks/jellyfin"
 [[stack]]
 name = "jellyseerr"
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/jellyseerr"
 
 ##
@@ -226,17 +226,20 @@ run_directory = "stacks/jellyseerr"
 [[stack]]
 name = "komodo"
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
-run_directory = "stacks/komodo"
+swarm = "Prod Swarm"
+linked_repo = "docker"
+run_directory = "komodo"
+environment = """
+TZ=[[TZ]]
+"""
 
 ##
 
 [[stack]]
 name = "lidarr"
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/lidarr"
 
 ##
@@ -260,8 +263,8 @@ PUBLIC_KEY=[[ntfy_public_key]]
 [[stack]]
 name = "prometheus"
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/prometheus"
 
 ##
@@ -269,8 +272,8 @@ run_directory = "stacks/prometheus"
 [[stack]]
 name = "prowlarr"
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/prowlarr"
 
 ##
@@ -278,8 +281,8 @@ run_directory = "stacks/prowlarr"
 [[stack]]
 name = "radarr"
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/radarr"
 
 ##
@@ -328,8 +331,8 @@ SEMAPHORE_OIDC_SECRET=[[semaphore_oidc_secret]]
 [[stack]]
 name = "sonarr"
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/sonarr"
 
 ##
@@ -352,8 +355,8 @@ REDIS_PASSWORD=[[redis_password]]
 [[stack]]
 name = "traefik"
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/traefik"
 
 ##
@@ -373,8 +376,8 @@ CF_DNS_API_TOKEN=[[cloudflare_api_token]]
 [[stack]]
 name = "vaultwarden"
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/vaultwarden"
 
 ##
@@ -382,8 +385,8 @@ run_directory = "stacks/vaultwarden"
 [[stack]]
 name = "wizarr"
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/wizarr"
 
 ##
@@ -401,134 +404,27 @@ include_commit_tag = false
 linked_repo = "homelab"
 build_path = "stacks/semaphore"
 image_registry = [
-    { domain = "registry.gitlab.com/atilili/homelab", account = "atilil" },
+  { domain = "registry.gitlab.com/atilili/homelab", account = "atilil" }
 ]
+
+##
+
+[[repo]]
+name = "docker"
+[repo.config]
+git_provider = "forge.macopla.com"
+git_account = "komodo"
+repo = "homelab/docker"
 
 ##
 
 [[repo]]
 name = "homelab"
 [repo.config]
-server       = "neo"
+server = "neo"
 git_provider = "gitlab.com"
-git_account  = "Atilil"
-repo         = "atilili/homelab"
-
-##
-
-# [[action]]
-# name = "Stacks Gitlab Webhooks Management"
-# [action.config]
-# file_contents = """
-# // Crée les webhooks GitLab pour toutes les stacks Komodo qui n'en ont pas encore
-# const GITLAB_TOKEN = "[[gitlab_token]]";
-# const GITLAB_PROJECT_ID = "[[gitlab_project_id]]";
-# const KOMODO_URL = "https://komodo.macopla.com";
-# const WEBHOOK_SECRET = "[[komodo_gitlab_webhook_secret]]";
-#
-# // 1. Lister les stacks Komodo
-# const stacks = await komodo.read("ListStacks", {});
-# const stackNames = stacks.map((s: any) => s.name);
-# console.log(`Found ${stackNames.length} stacks:`, stackNames.join(","));
-#
-# // 2. Récupérer les webhooks GitLab existants
-# const hooksRes = await fetch(
-#   `https://gitlab.com/api/v4/projects/${GITLAB_PROJECT_ID}/hooks?per_page=100`,
-#   { headers: { "PRIVATE-TOKEN": GITLAB_TOKEN! } }
-# );
-# const existingHooks = await hooksRes.json();
-# console.log("GitLab hooks response:",
-# JSON.stringify(existingHooks).slice(0, 500));
-# const hooksList = Array.isArray(existingHooks) ? existingHooks : [];
-# const existingUrls = hooksList.map((h: any) => h.url);
-#
-# // 3. Nettoyage doublons
-# const seen = new Map<string, number>();
-# for (const hook of hooksList) {
-#   if (!hook.url.includes("/listener/gitlab/stack/")) continue;
-#   if (seen.has(hook.url)) {
-#     await fetch(`https://gitlab.com/api/v4/projects/${GITLAB_PROJECT_ID}/hooks/${hook.id}`,
-#       { method: "DELETE", headers: { "PRIVATE-TOKEN": GITLAB_TOKEN } }
-#     );
-#     console.log(`🗑 Doublon supprimé: ${hook.name} (id: ${hook.id})`);
-#   } else {
-#     seen.set(hook.url, hook.id);
-#   }
-# }
-# // 4. Créer les webhooks manquants
-# for (const name of stackNames) {
-#   const webhookUrl = `${KOMODO_URL}/listener/gitlab/stack/${name}/deploy`;
-#
-#   if (existingUrls.includes(webhookUrl)) {
-#     const hook = hooksList.find((h: any) => h.url === webhookUrl);
-#     if (hook && hook.name !== `Komodo ${name} Deploy`) {
-#       await fetch(
-#         `https://gitlab.com/api/v4/projects/${GITLAB_PROJECT_ID}/hooks/${hook.id}`,
-#         {
-#           method: "PUT",
-#           headers: {
-#             "PRIVATE-TOKEN": GITLAB_TOKEN,
-#             "Content-Type": "application/json",
-#           },
-#           body: JSON.stringify({
-#             name: `Komodo ${name} Deploy`,
-#             url: webhookUrl,
-#             token: WEBHOOK_SECRET,
-#             push_events: true,
-#             enable_ssl_verification: true,
-#           }),
-#         }
-#       );
-#       console.log(`🔄 ${name} — webhook renommé`);
-#     } else {
-#       console.log(`⏭ ${name} — webhook OK`);
-#     }
-#     continue;
-#   }
-#
-#   const res = await fetch(
-#     `https://gitlab.com/api/v4/projects/${GITLAB_PROJECT_ID}/hooks`,
-#     {
-#       method: "POST",
-#       headers: {
-#         "PRIVATE-TOKEN": GITLAB_TOKEN!,
-#         "Content-Type": "application/json",
-#       },
-#       body: JSON.stringify({
-#         name: `Komodo ${name} Deploy`,
-#         url: webhookUrl,
-#         token: WEBHOOK_SECRET,
-#         push_events: true,
-#         enable_ssl_verification: true,
-#       }),
-#     }
-#   );
-#
-#   if (res.ok) {
-#     console.log(`✅ ${name} — webhook créé`);
-#   } else {
-#     const err = await res.text();
-#     console.log(`❌ ${name} — erreur: ${err}`);
-#   }
-# }
-#
-# // 5. Supprimer les webhooks orphelins
-# for (const hook of hooksList) {
-#   const match = hook.url.match(/\/listener\/gitlab\/stack\/(.+)\/deploy$/);
-#   if (!match) continue;
-#   const hookStackName = match[1];
-#   if (!stackNames.includes(hookStackName)) {
-#     await fetch(
-#       `https://gitlab.com/api/v4/projects/${GITLAB_PROJECT_ID}/hooks/${hook.id}`,
-#       {
-#         method: "DELETE",
-#         headers: { "PRIVATE-TOKEN": GITLAB_TOKEN },
-#       }
-#     );
-#     console.log(`🗑 ${hookStackName} — webhook supprimé (stack n'existe plus)`);
-#   }
-# }
-# """
+git_account = "Atilil"
+repo = "atilili/homelab"
 
 ##
 
@@ -539,27 +435,27 @@ enabled = true
 endpoint.type = "Ntfy"
 endpoint.params.url = "https://ntfy.macopla.com/Infra?auth=[[ntfy_auth]]"
 alert_types = [
-    "ServerUnreachable",
-    "ServerCpu",
-    "ServerMem",
-    "ServerDisk",
-    "SwarmUnhealthy",
-    "StackImageUpdateAvailable",
-    "ActionFailed",
-    "ProcedureFailed",
-    "ResourceSyncPendingUpdates",
-    "ContainerStateChange",
-    "StackAutoUpdated",
-    "StackStateChange",
-    "ServerVersionMismatch",
-    "DeploymentImageUpdateAvailable",
-    "DeploymentAutoUpdated",
-    "ScheduleRun",
-    "BuildFailed",
-    "RepoBuildFailed",
+  "ServerUnreachable",
+  "ServerCpu",
+  "ServerMem",
+  "ServerDisk",
+  "SwarmUnhealthy",
+  "StackImageUpdateAvailable",
+  "ActionFailed",
+  "ProcedureFailed",
+  "ResourceSyncPendingUpdates",
+  "ContainerStateChange",
+  "StackAutoUpdated",
+  "StackStateChange",
+  "ServerVersionMismatch",
+  "DeploymentImageUpdateAvailable",
+  "DeploymentAutoUpdated",
+  "ScheduleRun",
+  "BuildFailed",
+  "RepoBuildFailed"
 ]
 maintenance_windows = [
-    { name = "Daily updates", description = "Updates automatique ", schedule_type = "Daily", hour = 3, minute = 0, duration_minutes = 60, enabled = true },
+  { name = "Daily updates", description = "Updates automatique ", schedule_type = "Daily", hour = 3, minute = 0, duration_minutes = 60, enabled = true }
 ]
 
 ##
@@ -567,14 +463,24 @@ maintenance_windows = [
 [[builder]]
 name = "neo"
 [builder.config]
-type           = "Server"
+type = "Server"
 params.servers = ["neo"]
+
+##
+
+[[resource_sync]]
+name = "global sync"
+[resource_sync.config]
+linked_repo = "docker"
+resource_path = ["komodo/syncs.toml"]
+managed = true
+delete = true
 
 ##
 
 [[resource_sync]]
 name = "ressources sync"
 [resource_sync.config]
-linked_repo   = "homelab"
+linked_repo = "homelab"
 resource_path = ["stacks/komodo/syncs.toml"]
-managed       = true
+managed = true
