@@ -81,8 +81,8 @@ description = "Service de gestion de code source"
 tags        = ["stack"]
 [stack.config]
 server        = "controlplane"
-linked_repo   = "homelab"
-run_directory = "stacks/forgejo"
+linked_repo   = "docker"
+run_directory = "forgejo"
 
 ##
 
