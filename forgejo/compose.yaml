@@ -1,0 +1,47 @@
+services:
+    forgejo:
+        image: codeberg.org/forgejo/forgejo:16-rootless
+        restart: unless-stopped
+        user: 1000:1000
+        environment:
+        - FORGEJO__server__DOMAIN=forge.macopla.com
+        - FORGEJO__server__ROOT_URL=https://forge.macopla.com/
+        - FORGEJO__server__SSH_DOMAIN=forge.macopla.com
+        - FORGEJO__server__SSH_PORT=2222
+        - FORGEJO__service__DISABLE_REGISTRATION=true
+        - FORGEJO__repository__ENABLE_PUSH_CREATE_ORG=true
+        - FORGEJO__repository__DEFAULT_PUSH_CREATE_PRIVATE=true
+        - FORGEJO__repository_0X2E_signing__FORMAT=ssh
+        - FORGEJO__repository_0X2E_signing__SIGNING_KEY=/var/lib/gitea/ssh/forgejo_sign.pub
+        - FORGEJO__repository_0X2E_signing__SIGNING_NAME=MacoplaForge
+        - FORGEJO__repository_0X2E_signing__SIGNING_EMAIL=forge@macopla.com
+        - FORGEJO__repository_0X2E_signing__MERGES=commitssigned
+        - FORGEJO__webhook__ALLOWED_HOST_LIST=external,komodo.macopla.com
+        networks:
+        - proxy
+        volumes:
+        - type: volume
+          source: forgejo-data
+          target: /var/lib/gitea
+        - type: bind
+          source: /etc/localtime
+          target: /etc/localtime
+          read_only: true
+        ports:
+        - '10.86.99.6:2222:2222'
+        security_opt:
+        - no-new-privileges:true
+        deploy:
+            resources:
+                limits:
+                    memory: 1G
+
+networks:
+    proxy:
+        external: true
+volumes:
+    forgejo-data:
+        driver_opts:
+            type: none
+            o: bind
+            device: /data/forgejo/data

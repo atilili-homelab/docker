@@ -11,7 +11,7 @@ match_tags    = ["alert"]
 
 [[resource_sync]]
 name        = "Procedures"
-description = "Synchro des procedure"
+description = "Synchro des procedures"
 tags        = ["sync"]
 [resource_sync.config]
 linked_repo   = "docker"
