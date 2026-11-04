@@ -1,0 +1,7 @@
+[[swarm]]
+name        = "Prod Swarm"
+description = "Production Swarm"
+tags        = ["swarm"]
+[swarm.config]
+servers               = ["neo", "morpheus", "trinity"]
+send_unhealthy_alerts = true
