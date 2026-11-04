@@ -1,0 +1,30 @@
+[[alerter]]
+name = "ntfy"
+tags = ["alert"]
+[alerter.config]
+enabled = true
+endpoint.type = "Ntfy"
+endpoint.params.url = "https://ntfy.macopla.com/Infra?auth=[[ntfy_auth]]"
+alert_types = [
+    "ServerUnreachable",
+    "ServerCpu",
+    "ServerMem",
+    "ServerDisk",
+    "SwarmUnhealthy",
+    "StackImageUpdateAvailable",
+    "ActionFailed",
+    "ProcedureFailed",
+    "ResourceSyncPendingUpdates",
+    "ContainerStateChange",
+    "StackAutoUpdated",
+    "StackStateChange",
+    "ServerVersionMismatch",
+    "DeploymentImageUpdateAvailable",
+    "DeploymentAutoUpdated",
+    "ScheduleRun",
+    "BuildFailed",
+    "RepoBuildFailed",
+]
+maintenance_windows = [
+    { name = "Daily updates", description = "Updates automatique ", schedule_type = "Daily", hour = 3, minute = 0, duration_minutes = 60, enabled = true },
+]
