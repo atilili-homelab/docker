@@ -1,15 +1,61 @@
-[[builder]]
-name = "neo"
-[builder.config]
-type           = "Server"
-params.servers = ["neo"]
+[[resource_sync]]
+name        = "Syncs"
+description = "Synchro des Syncs"
+tags        = ["sync"]
+[resource_sync.config]
+linked_repo   = "docker"
+resource_path = ["komodo/syncs.toml"]
+match_tags    = ["sync"]
+
+[[resource_sync]]
+name        = "Alerters"
+description = "Synchro des alerters"
+tags        = ["sync"]
+[resource_sync.config]
+linked_repo   = "docker"
+resource_path = ["komodo/alerters.toml"]
+match_tags    = ["alert"]
 
 ##
 
 [[resource_sync]]
-name = "global sync"
+name        = "Repos"
+description = "Synchro des repos"
+tags        = ["sync"]
 [resource_sync.config]
 linked_repo   = "docker"
-resource_path = ["komodo/syncs.toml"]
-managed       = true
-delete        = true
+resource_path = ["komodo/repos.toml"]
+match_tags    = ["repo"]
+
+##
+
+[[resource_sync]]
+name        = "Servers"
+description = "Synchro des servers"
+tags        = ["sync"]
+[resource_sync.config]
+linked_repo   = "docker"
+resource_path = ["komodo/servers.toml"]
+match_tags    = ["server"]
+
+##
+
+[[resource_sync]]
+name        = "Stacks"
+description = "Synchro des stacks"
+tags        = ["sync"]
+[resource_sync.config]
+linked_repo   = "docker"
+resource_path = ["komodo/stacks.toml"]
+match_tags    = ["stack"]
+
+##
+
+[[resource_sync]]
+name        = "Swarms"
+description = "Synchro des swarms"
+tags        = ["sync"]
+[resource_sync.config]
+linked_repo   = "docker"
+resource_path = ["komodo/swarms.toml"]
+match_tags    = ["swarm"]
