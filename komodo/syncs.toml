@@ -1,103 +1,7 @@
-[[server]]
-name = "controlplane"
-[server.config]
-enabled = true
-
-##
-
-[[server]]
-name = "dozer"
-[server.config]
-enabled = true
-
-##
-
-[[server]]
-name = "link"
-[server.config]
-enabled = true
-ignore_mounts = ["/mnt/UNIFIED"]
-
-##
-
-[[server]]
-name = "merovingian"
-[server.config]
-enabled = true
-ignore_mounts = ["/mnt/UNIFIED"]
-
-##
-
-[[server]]
-name = "morpheus"
-[server.config]
-enabled = true
-
-##
-
-[[server]]
-name = "mouse"
-[server.config]
-enabled = true
-send_cpu_alerts = false
-send_mem_alerts = false
-
-##
-
-[[server]]
-name = "neo"
-[server.config]
-enabled = true
-mem_warning = 90.0
-mem_critical = 99.0
-
-##
-
-[[server]]
-name = "niobe"
-[server.config]
-enabled = true
-
-##
-
-[[server]]
-name = "oracle"
-[server.config]
-enabled = true
-
-##
-
-[[server]]
-name = "persephone"
-[server.config]
-enabled = true
-mem_warning = 90.0
-mem_critical = 99.0
-
-##
-
-[[server]]
-name = "seraph"
-[server.config]
-enabled = true
-mem_warning = 90.0
-mem_critical = 99.0
-
-##
-
-[[server]]
-name = "trinity"
-[server.config]
-enabled = true
-mem_warning = 90.0
-mem_critical = 99.0
-
-##
-
 [[swarm]]
 name = "Prod Swarm"
 [swarm.config]
-servers = ["neo", "morpheus", "trinity"]
+servers               = ["neo", "morpheus", "trinity"]
 send_unhealthy_alerts = true
 
 ##
@@ -105,8 +9,8 @@ send_unhealthy_alerts = true
 [[stack]]
 name = "authentik"
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
+swarm         = "Prod Swarm"
+linked_repo   = "homelab"
 run_directory = "stacks/authentik"
 
 ##
@@ -114,8 +18,8 @@ run_directory = "stacks/authentik"
 [[stack]]
 name = "bazarr"
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
+swarm         = "Prod Swarm"
+linked_repo   = "homelab"
 run_directory = "stacks/bazarr"
 
 ##
@@ -123,8 +27,8 @@ run_directory = "stacks/bazarr"
 [[stack]]
 name = "bookshelf"
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
+swarm         = "Prod Swarm"
+linked_repo   = "homelab"
 run_directory = "stacks/bookshelf"
 
 ##
@@ -132,8 +36,8 @@ run_directory = "stacks/bookshelf"
 [[stack]]
 name = "bookstack"
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
+swarm         = "Prod Swarm"
+linked_repo   = "homelab"
 run_directory = "stacks/bookstack"
 
 ##
@@ -141,8 +45,8 @@ run_directory = "stacks/bookstack"
 [[stack]]
 name = "cinesync"
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
+swarm         = "Prod Swarm"
+linked_repo   = "homelab"
 run_directory = "stacks/cinesync"
 
 ##
@@ -150,8 +54,8 @@ run_directory = "stacks/cinesync"
 [[stack]]
 name = "cloudflare-ddns"
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
+swarm         = "Prod Swarm"
+linked_repo   = "homelab"
 run_directory = "stacks/cloudflare-ddns"
 
 ##
@@ -159,8 +63,8 @@ run_directory = "stacks/cloudflare-ddns"
 [[stack]]
 name = "crowdsec"
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
+swarm         = "Prod Swarm"
+linked_repo   = "homelab"
 run_directory = "stacks/crowdsec"
 
 ##
@@ -168,8 +72,8 @@ run_directory = "stacks/crowdsec"
 [[stack]]
 name = "forgejo"
 [stack.config]
-server = "controlplane"
-linked_repo = "homelab"
+server        = "controlplane"
+linked_repo   = "homelab"
 run_directory = "stacks/forgejo"
 
 ##
@@ -190,8 +94,8 @@ GATUS_PUSH_TOKEN=[[gatus_push_token]]
 [[stack]]
 name = "homarr"
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
+swarm         = "Prod Swarm"
+linked_repo   = "homelab"
 run_directory = "stacks/homarr"
 
 ##
@@ -199,8 +103,8 @@ run_directory = "stacks/homarr"
 [[stack]]
 name = "immich"
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
+swarm         = "Prod Swarm"
+linked_repo   = "homelab"
 run_directory = "stacks/immich"
 
 ##
@@ -208,8 +112,8 @@ run_directory = "stacks/immich"
 [[stack]]
 name = "jellyfin"
 [stack.config]
-server = "link"
-linked_repo = "homelab"
+server        = "link"
+linked_repo   = "homelab"
 run_directory = "stacks/jellyfin"
 
 ##
@@ -217,8 +121,8 @@ run_directory = "stacks/jellyfin"
 [[stack]]
 name = "jellyseerr"
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
+swarm         = "Prod Swarm"
+linked_repo   = "homelab"
 run_directory = "stacks/jellyseerr"
 
 ##
@@ -238,8 +142,8 @@ TZ=[[TZ]]
 [[stack]]
 name = "lidarr"
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
+swarm         = "Prod Swarm"
+linked_repo   = "homelab"
 run_directory = "stacks/lidarr"
 
 ##
@@ -263,8 +167,8 @@ PUBLIC_KEY=[[ntfy_public_key]]
 [[stack]]
 name = "prometheus"
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
+swarm         = "Prod Swarm"
+linked_repo   = "homelab"
 run_directory = "stacks/prometheus"
 
 ##
@@ -272,8 +176,8 @@ run_directory = "stacks/prometheus"
 [[stack]]
 name = "prowlarr"
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
+swarm         = "Prod Swarm"
+linked_repo   = "homelab"
 run_directory = "stacks/prowlarr"
 
 ##
@@ -281,8 +185,8 @@ run_directory = "stacks/prowlarr"
 [[stack]]
 name = "radarr"
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
+swarm         = "Prod Swarm"
+linked_repo   = "homelab"
 run_directory = "stacks/radarr"
 
 ##
@@ -331,8 +235,8 @@ SEMAPHORE_OIDC_SECRET=[[semaphore_oidc_secret]]
 [[stack]]
 name = "sonarr"
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
+swarm         = "Prod Swarm"
+linked_repo   = "homelab"
 run_directory = "stacks/sonarr"
 
 ##
@@ -355,8 +259,8 @@ REDIS_PASSWORD=[[redis_password]]
 [[stack]]
 name = "traefik"
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
+swarm         = "Prod Swarm"
+linked_repo   = "homelab"
 run_directory = "stacks/traefik"
 
 ##
@@ -376,8 +280,8 @@ CF_DNS_API_TOKEN=[[cloudflare_api_token]]
 [[stack]]
 name = "vaultwarden"
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
+swarm         = "Prod Swarm"
+linked_repo   = "homelab"
 run_directory = "stacks/vaultwarden"
 
 ##
@@ -385,8 +289,8 @@ run_directory = "stacks/vaultwarden"
 [[stack]]
 name = "wizarr"
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
+swarm         = "Prod Swarm"
+linked_repo   = "homelab"
 run_directory = "stacks/wizarr"
 
 ##
@@ -404,7 +308,7 @@ include_commit_tag = false
 linked_repo = "homelab"
 build_path = "stacks/semaphore"
 image_registry = [
-  { domain = "registry.gitlab.com/atilili/homelab", account = "atilil" }
+    { domain = "registry.gitlab.com/atilili/homelab", account = "atilil" },
 ]
 
 ##
@@ -412,20 +316,20 @@ image_registry = [
 [[repo]]
 name = "docker"
 [repo.config]
-server = "neo"
+server       = "neo"
 git_provider = "forge.macopla.com"
-git_account = "komodo"
-repo = "homelab/docker"
+git_account  = "komodo"
+repo         = "homelab/docker"
 
 ##
 
 [[repo]]
 name = "homelab"
 [repo.config]
-server = "neo"
+server       = "neo"
 git_provider = "gitlab.com"
-git_account = "Atilil"
-repo = "atilili/homelab"
+git_account  = "Atilil"
+repo         = "atilili/homelab"
 
 ##
 
@@ -436,27 +340,27 @@ enabled = true
 endpoint.type = "Ntfy"
 endpoint.params.url = "https://ntfy.macopla.com/Infra?auth=[[ntfy_auth]]"
 alert_types = [
-  "ServerUnreachable",
-  "ServerCpu",
-  "ServerMem",
-  "ServerDisk",
-  "SwarmUnhealthy",
-  "StackImageUpdateAvailable",
-  "ActionFailed",
-  "ProcedureFailed",
-  "ResourceSyncPendingUpdates",
-  "ContainerStateChange",
-  "StackAutoUpdated",
-  "StackStateChange",
-  "ServerVersionMismatch",
-  "DeploymentImageUpdateAvailable",
-  "DeploymentAutoUpdated",
-  "ScheduleRun",
-  "BuildFailed",
-  "RepoBuildFailed"
+    "ServerUnreachable",
+    "ServerCpu",
+    "ServerMem",
+    "ServerDisk",
+    "SwarmUnhealthy",
+    "StackImageUpdateAvailable",
+    "ActionFailed",
+    "ProcedureFailed",
+    "ResourceSyncPendingUpdates",
+    "ContainerStateChange",
+    "StackAutoUpdated",
+    "StackStateChange",
+    "ServerVersionMismatch",
+    "DeploymentImageUpdateAvailable",
+    "DeploymentAutoUpdated",
+    "ScheduleRun",
+    "BuildFailed",
+    "RepoBuildFailed",
 ]
 maintenance_windows = [
-  { name = "Daily updates", description = "Updates automatique ", schedule_type = "Daily", hour = 3, minute = 0, duration_minutes = 60, enabled = true }
+    { name = "Daily updates", description = "Updates automatique ", schedule_type = "Daily", hour = 3, minute = 0, duration_minutes = 60, enabled = true },
 ]
 
 ##
@@ -464,7 +368,7 @@ maintenance_windows = [
 [[builder]]
 name = "neo"
 [builder.config]
-type = "Server"
+type           = "Server"
 params.servers = ["neo"]
 
 ##
@@ -472,7 +376,8 @@ params.servers = ["neo"]
 [[resource_sync]]
 name = "global sync"
 [resource_sync.config]
-linked_repo = "docker"
+linked_repo   = "docker"
 resource_path = ["komodo/syncs.toml"]
-managed = true
-delete = true
+managed       = true
+delete        = true
+

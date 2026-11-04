@@ -1,0 +1,130 @@
+[[server]]
+name        = "controlplane"
+description = "VPS OVH"
+tags        = ["server"]
+[server.config]
+enabled      = true
+mem_warning  = 90.0
+mem_critical = 99.0
+
+##
+
+[[server]]
+name        = "dozer"
+description = "Serveur de base de donnée"
+tags        = ["server", "database", "critical"]
+[server.config]
+enabled      = true
+mem_warning  = 90.0
+mem_critical = 99.0
+
+##
+
+[[server]]
+name        = "link"
+description = "Serveur Jellyfin"
+tags        = ["server", "media", "critical"]
+[server.config]
+enabled       = true
+ignore_mounts = ["/mnt/UNIFIED"]
+mem_warning   = 90.0
+mem_critical  = 99.0
+
+##
+
+[[server]]
+name        = "merovingian"
+description = "Serveur seedbox"
+tags        = ["server", "media"]
+[server.config]
+enabled       = true
+ignore_mounts = ["/mnt/UNIFIED"]
+mem_warning   = 90.0
+mem_critical  = 99.0
+
+##
+
+[[server]]
+name        = "morpheus"
+description = "Serveur Swarm Manager"
+tags        = ["server", "manager"]
+[server.config]
+enabled      = true
+mem_warning  = 90.0
+mem_critical = 99.0
+
+##
+
+[[server]]
+name        = "mouse"
+description = "Serveur CI builder/runner"
+tags        = ["server", "runner"]
+[server.config]
+enabled         = true
+send_cpu_alerts = false
+send_mem_alerts = false
+
+##
+
+[[server]]
+name        = "neo"
+description = "Serveur Swarm Manager"
+tags        = ["server", "manager"]
+[server.config]
+enabled      = true
+mem_warning  = 90.0
+mem_critical = 99.0
+
+##
+
+[[server]]
+name        = "niobe"
+description = "Serveur Apps"
+tags        = ["server", "apps"]
+[server.config]
+enabled      = true
+mem_warning  = 90.0
+mem_critical = 99.0
+##
+
+[[server]]
+name        = "oracle"
+description = "Serveur Monitoring"
+tags        = ["server", "monitoring"]
+[server.config]
+enabled      = true
+mem_warning  = 90.0
+mem_critical = 99.0
+
+##
+
+[[server]]
+name        = "persephone"
+description = "Serveur Mail"
+tags        = ["server", "mail", "critical"]
+[server.config]
+enabled      = true
+mem_warning  = 90.0
+mem_critical = 99.0
+
+##
+
+[[server]]
+name        = "seraph"
+description = "Serveur Infra"
+tags        = ["server", "infra", "critical"]
+[server.config]
+enabled      = true
+mem_warning  = 90.0
+mem_critical = 99.0
+
+##
+
+[[server]]
+name        = "trinity"
+description = "Serveur Swarm Manager"
+tags        = ["server", "manager"]
+[server.config]
+enabled      = true
+mem_warning  = 90.0
+mem_critical = 99.0
