@@ -1,0 +1,27 @@
+[[procedure]]
+name        = "Deploy on push"
+description = "Webhook Forgejo : sync puis déploiement des stacks modifiées"
+tags        = ["procedure"]
+[[procedure.config.stage]]
+name = "Sync step 1"
+enabled = true
+executions = [
+    { execution.type = "RunSync", execution.params.sync = "Syncs", enabled = true },
+]
+[[procedure.config.stage]]
+name = "Sync step 2"
+enabled = true
+executions = [
+    { execution.type = "RunSync", execution.params.sync = "Alerters", enabled = true },
+    { execution.type = "RunSync", execution.params.sync = "Procedures", enabled = true },
+    { execution.type = "RunSync", execution.params.sync = "Repos", enabled = true },
+    { execution.type = "RunSync", execution.params.sync = "Servers", enabled = true },
+    { execution.type = "RunSync", execution.params.sync = "Stacks", enabled = true },
+    { execution.type = "RunSync", execution.params.sync = "Swarms", enabled = true },
+]
+[[procedure.config.stage]]
+name = "Deploy"
+enabled = true
+executions = [
+    { execution.type = "BatchDeployStackIfChanged", execution.params.pattern = "*", enabled = true },
+]

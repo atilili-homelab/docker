@@ -1,13 +1,4 @@
 [[resource_sync]]
-name        = "Syncs"
-description = "Synchro des Syncs"
-tags        = ["sync"]
-[resource_sync.config]
-linked_repo   = "docker"
-resource_path = ["komodo/syncs.toml"]
-match_tags    = ["sync"]
-
-[[resource_sync]]
 name        = "Alerters"
 description = "Synchro des alerters"
 tags        = ["sync"]
@@ -18,6 +9,16 @@ match_tags    = ["alert"]
 
 ##
 
+[[resource_sync]]
+name        = "Procedures"
+description = "Synchro des procedure"
+tags        = ["sync"]
+[resource_sync.config]
+linked_repo   = "docker"
+resource_path = ["komodo/procedures.toml"]
+match_tags    = ["procedure"]
+
+##
 [[resource_sync]]
 name        = "Repos"
 description = "Synchro des repos"
@@ -59,3 +60,14 @@ tags        = ["sync"]
 linked_repo   = "docker"
 resource_path = ["komodo/swarms.toml"]
 match_tags    = ["swarm"]
+
+##
+
+[[resource_sync]]
+name        = "Syncs"
+description = "Synchro des Syncs"
+tags        = ["sync"]
+[resource_sync.config]
+linked_repo   = "docker"
+resource_path = ["komodo/syncs.toml"]
+match_tags    = ["sync"]
