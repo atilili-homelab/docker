@@ -1,4 +1,15 @@
 [[stack]]
+name        = "authelia"
+description = "Services d'authentification et ldap du Homelab"
+tags        = ["stack"]
+[stack.config]
+swarm         = "Prod Swarm"
+linked_repo   = "docker"
+run_directory = "authelia"
+
+##
+
+[[stack]]
 name        = "authentik"
 description = "Service d'authentification pour les services du homelab"
 tags        = ["stack"]
