@@ -1,7 +1,7 @@
 http:
   routers:
     dashboard:
-      rule: "Host(`traefik.macopla.com``)"
+      rule: "Host(`traefik.macopla.com`)"
       service: api@internal
       middlewares:
         - lan
@@ -88,7 +88,7 @@ http:
     nas:
       loadBalancer:
         servers:
-          - url: "http://10.86.30.100"
+          - url: "https://10.86.30.100"
         serversTransport: insecure
 
   serversTransports:
