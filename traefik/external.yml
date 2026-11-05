@@ -1,0 +1,96 @@
+http:
+  routers:
+    dashboard:
+      rule: "Host(`traefik.macopla.com``)"
+      service: api@internal
+      middlewares:
+        - lan
+
+    yoflix:
+      rule: "Host(`yoflix.macopla.com`)"
+      service: yoflix
+
+    mailcow:
+      rule: "Host(`webmail.macopla.com`)"
+      service: mailcow
+
+    mailcow-autoconfig:
+      rule: "Host(`autoconfig.macopla.com`) && Path(`/mail/config-v1.1.xml`)"
+      service: mailcow
+
+    mailcow-autodiscover:
+      rule: "Host(`autodiscover.macopla.com`) && Path(`/autodiscover/autodiscover.xml`)"
+      service: mailcow
+
+    pbs:
+      rule: "Host(`pbs.macopla.com`)"
+      service: pbs
+      middlewares:
+        - lan
+
+    pve:
+      rule: "Host(`pve.macopla.com`)"
+      service: pve
+      middlewares:
+        - lan
+
+    seedbox:
+      rule: "Host(`seedbox.macopla.com`)"
+      service: seedbox
+      middlewares:
+        - lan
+
+    technitium:
+      rule: "Host(`dns.macopla.com`)"
+      service: technitium
+      middlewares:
+        - lan
+
+    nas:
+      rule: "Host(`nas.macopla.com`)"
+      service: nas
+      middlewares:
+        - lan
+
+  services:
+    yoflix:
+      loadBalancer:
+        servers:
+          - url: "http://10.86.30.33:8096"
+
+    mailcow:
+      loadBalancer:
+        servers:
+          - url: "http://10.86.30.53:8080"
+
+    pbs:
+      loadBalancer:
+        servers:
+          - url: "https://10.86.30.110:8007"
+        serversTransport: insecure
+
+    pve:
+      loadBalancer:
+        servers:
+          - url: "https://10.86.30.10:8006"
+        serversTransport: insecure
+
+    seedbox:
+      loadBalancer:
+        servers:
+          - url: "http://10.86.30.51:8080"
+
+    technitium:
+      loadBalancer:
+        servers:
+          - url: "http://10.86.30.40:5380"
+
+    nas:
+      loadBalancer:
+        servers:
+          - url: "http://10.86.30.100"
+        serversTransport: insecure
+
+  serversTransports:
+    insecure:
+      insecureSkipVerify: true
