@@ -302,8 +302,8 @@ description = "Service de reverse proxy"
 tags        = ["stack"]
 [stack.config]
 swarm         = "Prod Swarm"
-linked_repo   = "homelab"
-run_directory = "stacks/traefik"
+linked_repo   = "docker"
+run_directory = "traefik"
 
 ##
 
