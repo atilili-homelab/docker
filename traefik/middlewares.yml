@@ -12,3 +12,20 @@ http:
       chain:
         middlewares:
           - lan
+
+    crowdsec:
+      plugin:
+        crowdsec-bouncer-traefik-plugin:
+          Enabled: true
+          CrowdsecLapiHost: crowdsec_crowdsec:8080
+          CrowdsecLapiKeyFile: /run/secret/traefik_crowdsec_lapi_key
+          CrowdsecMode: stream
+          ClientTrustedIPs:
+            - 10.0.0.0/8
+            - 172.16.0.0/12
+            - 192.168.0.0/16
+          UpdateMaxFailure: 0
+          CrowdsecAppsecEnabled: true
+          CrowdsecAppsecHost: crowdsec_crowdsec:7422
+          CrowdsecAppsecFailureBlock: true
+          CrowdsecAppsecUnreachableBlock: true
