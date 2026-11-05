@@ -18,7 +18,7 @@ http:
         crowdsec-bouncer-traefik-plugin:
           Enabled: true
           CrowdsecLapiHost: crowdsec_crowdsec:8080
-          CrowdsecLapiKeyFile: /run/secret/traefik_crowdsec_lapi_key
+          CrowdsecLapiKeyFile: /run/secrets/traefik_crowdsec_lapi_key
           CrowdsecMode: stream
           ClientTrustedIPs:
             - 10.0.0.0/8

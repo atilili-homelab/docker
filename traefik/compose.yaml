@@ -152,7 +152,7 @@ networks:
 
 configs:
     middlewares:
-        name: traefik_middlewares_v1
+        name: traefik_middlewares_v2
         file: ./middlewares.yml
     external:
         name: traefik_external_v1
