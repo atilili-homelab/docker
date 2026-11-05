@@ -44,7 +44,7 @@ services:
                 - node.role == manager
 
     traefik:
-        image: traefik:v3.7@sha256:24841fe2de7304c149343d877d2923b4c8800a38ba015dea9174c23b20e344a0
+        image: traefik:v3.7@sha256:321153f6f732f912cf5c6f0597fe38743fc7895d482d7d8804a479ae0403e151
         command:
         # HTTP Entrypoint
         - --entrypoints.web.address=:80
