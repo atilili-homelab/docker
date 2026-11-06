@@ -1,0 +1,37 @@
+---
+###############################################################################
+##                           Authelia Configuration                          ##
+###############################################################################
+server:
+  address: tcp://:9091
+
+log:
+  level: info
+
+authentication_backend:
+  ldap:
+    implementation: lldap
+    address: ldap://authelia_lldap:3890
+    base_dn: dc=macopla,dc=com
+    user: uid=authelia,ou=people,dc=macopla,dc=com
+
+session:
+  cookies:
+    - domain: macopla.com
+      authelia_url: https://sso.macopla.com
+
+storage:
+  postgres:
+    address: tcp:///authelia_postgres:5432
+    database: authelia
+    username: authelia
+
+notifier:
+  filesystem:
+    filename: /tmp/notification.txt
+
+access_control:
+  default_policy: deny
+  rules:
+    - domain: "*.macopla.com"
+      policy: two_factor
