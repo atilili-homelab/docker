@@ -1,4 +1,65 @@
 services:
+    lldap:
+        image: lldap/lldap:v0.6.3
+        entrypoint:
+        - 'tini'
+        - '--'
+        - '/bin/sh'
+        - '-c'
+        - 'export PGPASSWORD="$$(cat /run/secrets/lldap_db_password)" && exec /docker-entrypoint.sh "$$@"'
+        - 'sh'
+        command:
+        - 'run'
+        - '--config-file'
+        - '/data/lldap_config.toml'
+        env_file:
+        - ./lldap.env
+        environment:
+        - TZ=${TZ:?}
+        secrets:
+        - lldap_db_password
+        - lldap_jwt_secret
+        - lldap_key_seed
+        - lldap_admin_password
+        networks:
+        - authelia-net
+        - traefik-lan
+        deploy:
+            labels:
+            - traefik.enable=true
+            - traefik.swarm.network=traefik-lan
+            - traefik.http.routers.lldap.rule=Host(`ldap.macopla.com`)
+            - traefik.http.routers.lldap.middlewares=lan@file
+            - traefik.http.services.lldap.loadbalancer.server.port=17170
+            replicas: 1
+            placement:
+                constraints:
+                - node.labels.tier == infra
+            update_config:
+                parallelism: 1
+                order: stop-first
+                failure_action: rollback
+            rollback_config:
+                parallelism: 1
+            restart_policy:
+                condition: any
+                delay: 10s
+                window: 120s
+            resources:
+                limits:
+                    memory: 128M
+        healthcheck:
+            test:
+            - 'CMD'
+            - '/app/lldap'
+            - 'healthcheck'
+            - '--config-file'
+            - '/data/lldap_config.toml'
+            interval: 30s
+            timeout: 5s
+            retries: 5
+            start_period: 30s
+
     postgres:
         image: postgres:18.6-trixie@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
         environment:
@@ -55,6 +116,12 @@ secrets:
         external: true
     lldap_db_password:
         external: true
+    lldap_jwt_secret:
+        external: true
+    lldap_key_seed:
+        external: true
+    lldap_admin_password:
+        external: true
 
 volumes:
     postgres:
@@ -66,3 +133,5 @@ volumes:
 networks:
     authelia-net:
         driver: overlay
+    traefik-lan:
+        external: true
