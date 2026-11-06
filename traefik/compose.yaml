@@ -113,6 +113,8 @@ services:
           mode: host
         networks:
         - socket-proxy
+        - traefik-lan
+        - traefik-wan
         - traefik-public
         - net-security
         healthcheck:
@@ -145,6 +147,12 @@ services:
 networks:
     socket-proxy:
         external: true
+    traefik-lan:
+        name: traefik-lan
+        driver: overlay
+    traefik-wan:
+        name: traefik-wan
+        driver: overlay
     traefik-public:
         external: true
     net-security:
