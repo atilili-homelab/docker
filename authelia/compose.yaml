@@ -1,4 +1,55 @@
 services:
+    authelia:
+        image: authelia/authelia:4.39.28
+        user: 1000:1000
+        env_file:
+        - ./authelia.env
+        environment:
+        - TZ=${TZ:?}
+        configs:
+        - source: configuration
+          target: /config/configuration.yml
+        secrets:
+        - authelia_reset_password_jwt_secret
+        - authelia_session_secret
+        - authelia_storage_encryption_key
+        - authelia_db_password
+        - authelia_ldap_password
+        networks:
+        - authelia-net
+        - traefik-wan
+        deploy:
+            labels:
+            - traefik.enable=true
+            - traefik.swarm.network=traefik-wan
+            - traefik.http.routers.authelia.rule=Host(`sso.macopla.com`)
+            - traefik.http.services.authelia.loadbalancer.server.port=9091
+            replicas: 1
+            placement:
+                constraints:
+                - node.labels.tier == infra
+            update_config:
+                parallelism: 1
+                order: stop-first
+                failure_action: rollback
+            rollback_config:
+                parallelism: 1
+            restart_policy:
+                condition: any
+                delay: 10s
+                window: 120s
+            resources:
+                limits:
+                    memory: 256M
+        healthcheck:
+            test:
+            - 'CMD'
+            - '/app/healthcheck.sh'
+            interval: 30s
+            timeout: 5s
+            retries: 3
+            start_period: 30s
+
     lldap:
         image: lldap/lldap:v0.6.3@sha256:2a8454b668c1aba7157e832eab0e242e1e7eb5fb7591d7e7774ba05286511ca8
         entrypoint:
@@ -108,11 +159,22 @@ configs:
     initdb:
         name: authelia_initdb_v1
         file: ./initdb.sh
+    configuration:
+        name: authelia_configuration_v1
+        file: ./configuration.yml
 
 secrets:
     authelia_postgres_password:
         external: true
     authelia_db_password:
+        external: true
+    authelia_ldap_password:
+        external: true
+    authelia_reset_password_jwt_secret:
+        external: true
+    authelia_session_secret:
+        external: true
+    authelia_storage_encryption_key:
         external: true
     lldap_db_password:
         external: true
@@ -134,4 +196,6 @@ networks:
     authelia-net:
         driver: overlay
     traefik-lan:
+        external: true
+    traefik-wan:
         external: true
