@@ -15,6 +15,7 @@ services:
         - authelia_storage_encryption_key
         - authelia_db_password
         - authelia_ldap_password
+        - authelia_smtp_password
         networks:
         - authelia-net
         - traefik-wan
