@@ -1,0 +1,32 @@
+on:
+  push:
+    branches-ignore: [main]
+    paths:
+      - "authelia/**"
+      - ".forgejo/workflows/authelia.yml"
+
+name: Authelia
+
+concurrency:
+  group: authelia-${{ forgejo.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-config:
+    name: Validate config
+    runs-on: nixos
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Validate configuration with the deployed image
+        run: |
+          image=$(grep -oE 'authelia/authelia:[^[:space:]]+' authelia/compose.yaml)
+          echo "Image : $image"
+          podman run --rm \
+          -v "$PWD/authelia/configuration.yml:/config/configuration.yml:ro" \
+          -e AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET="x$(printf '%063d' 0)" \
+          -e AUTHELIA_SESSION_SECRET="x$(printf '%063d' 0)" \
+          -e AUTHELIA_STORAGE_ENCRYPTION_KEY="x$(printf '%063d' 0)" \
+          -e AUTHELIA_STORAGE_POSTGRES_PASSWORD=x \
+          -e AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD=x \
+          "docker.io/$image" authelia validate-config --config /config/configuration.yml
