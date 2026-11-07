@@ -160,10 +160,10 @@ networks:
 
 configs:
     middlewares:
-        name: traefik_middlewares_v2
+        name: traefik_middlewares_v3
         file: ./middlewares.yml
     external:
-        name: traefik_external_v1
+        name: traefik_external_v2
         file: ./external.yml
 
 secrets:

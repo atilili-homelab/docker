@@ -29,3 +29,18 @@ http:
           CrowdsecAppsecHost: crowdsec_crowdsec:7422
           CrowdsecAppsecFailureBlock: true
           CrowdsecAppsecUnreachableBlock: true
+
+    authelia:
+      forwardAuth:
+        address: http://authelia_authelia:9091/api/authz/forward-auth
+        trustForwardHeader: true
+        authResponseHeaders:
+          - Remote-User
+          - Remote-Groups
+          - Remote-Name
+          - Remote-Email
+    lan-sso:
+      chain:
+        middlewares:
+          - lan
+          - authelia

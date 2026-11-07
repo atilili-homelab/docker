@@ -5,6 +5,7 @@ http:
       service: api@internal
       middlewares:
         - lan
+        - lan-sso
 
     yoflix:
       rule: "Host(`yoflix.macopla.com`)"
