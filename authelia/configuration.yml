@@ -35,3 +35,13 @@ access_control:
   rules:
     - domain: "*.macopla.com"
       policy: two_factor
+
+totp:
+  issuer: macopla.com
+
+webauthn:
+  display_name: Macopla SSO
+  enable_passkey_login: true
+  experimental_enable_passkey_uv_two_factors: true
+  selection_criteria:
+    user_verification: required
