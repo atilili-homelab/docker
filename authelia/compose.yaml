@@ -16,6 +16,8 @@ services:
         - authelia_db_password
         - authelia_ldap_password
         - authelia_smtp_password
+        - authelia_oidc_jwks_key
+        - authelia_oidc_hmac_secret
         networks:
         - authelia-net
         - traefik-wan
@@ -161,7 +163,7 @@ configs:
         name: authelia_initdb_v1
         file: ./initdb.sh
     configuration:
-        name: authelia_configuration_v4
+        name: authelia_configuration_v5
         file: ./configuration.yml
 
 secrets:
@@ -178,6 +180,10 @@ secrets:
     authelia_storage_encryption_key:
         external: true
     authelia_smtp_password:
+        external: true
+    authelia_oidc_jwks_key:
+        external: true
+    authelia_oidc_hmac_secret:
         external: true
     lldap_db_password:
         external: true

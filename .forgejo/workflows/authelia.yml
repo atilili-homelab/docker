@@ -22,11 +22,18 @@ jobs:
         run: |
           image=$(grep -oE 'authelia/authelia:[^[:space:]]+' authelia/compose.yaml)
           echo "Image : $image"
+          secrets=$(mktemp -d)
+          podman run --rm -v "$secrets:/keys" "docker.io/$image" authelia crypto pair rsa generate --directory /keys > /dev/null
+          mv "$secrets/private.pem" "$secrets/authelia_oidc_jwks_key"
           podman run --rm \
-          -v "$PWD/authelia/configuration.yml:/config/configuration.yml:ro" \
-          -e AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET="x$(printf '%063d' 0)" \
-          -e AUTHELIA_SESSION_SECRET="x$(printf '%063d' 0)" \
-          -e AUTHELIA_STORAGE_ENCRYPTION_KEY="x$(printf '%063d' 0)" \
-          -e AUTHELIA_STORAGE_POSTGRES_PASSWORD=x \
-          -e AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD=x \
-          "docker.io/$image" authelia validate-config --config /config/configuration.yml
+            -v "$PWD/authelia/configuration.yml:/config/configuration.yml:ro" \
+            -v "$secrets:/run/secrets:ro" \
+            -e X_AUTHELIA_CONFIG_FILTERS=template \
+            -e AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET="x$(printf '%063d' 0)" \
+            -e AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET="x$(printf '%063d' 0)" \
+            -e AUTHELIA_SESSION_SECRET="x$(printf '%063d' 0)" \
+            -e AUTHELIA_STORAGE_ENCRYPTION_KEY="x$(printf '%063d' 0)" \
+            -e AUTHELIA_STORAGE_POSTGRES_PASSWORD=x \
+            -e AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD=x \
+            "docker.io/$image" authelia validate-config --config /config/configuration.yml
+            rm -r "$secrets"
