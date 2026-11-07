@@ -55,3 +55,8 @@ repos:
         pass_filenames: false
         files: (?:(?:^|/)action|^\.(?:forgejo|github|gitea)/workflows/[^/\n]+)\.ya?ml$
         types: [yaml]
+      - id: compose-config
+        name: Validate compose files
+        entry: sh -c 'for f in "$@"; do docker-compose -f "$f" config --no-interpolate -q || exit 1; done' --
+        language: system
+        files: (^|/)compose\.yaml$

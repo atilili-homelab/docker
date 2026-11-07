@@ -16,6 +16,7 @@
         pre-commit
         gitleaks
         forgejo-runner
+        docker-compose
       ];
   in {
     devShells = forAllSystems (pkgs: {
