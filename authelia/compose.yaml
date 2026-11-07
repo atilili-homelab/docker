@@ -160,7 +160,7 @@ configs:
         name: authelia_initdb_v1
         file: ./initdb.sh
     configuration:
-        name: authelia_configuration_v2
+        name: authelia_configuration_v3
         file: ./configuration.yml
 
 secrets:
@@ -175,6 +175,8 @@ secrets:
     authelia_session_secret:
         external: true
     authelia_storage_encryption_key:
+        external: true
+    authelia_smtp_password:
         external: true
     lldap_db_password:
         external: true

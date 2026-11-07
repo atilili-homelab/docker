@@ -27,8 +27,10 @@ storage:
     username: authelia
 
 notifier:
-  filesystem:
-    filename: /tmp/notification.txt
+  smtp:
+    address: submission://mail.macopla.com:587
+    username: noreply@macopla.com
+    sender: "Macopla SSO <noreply@macopla.com>"
 
 access_control:
   default_policy: deny
