@@ -1,15 +1,14 @@
 [[stack]]
-name        = "authelia"
+name = "authelia"
 description = "Services d'authentification et ldap du Homelab"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
 swarm = "Prod Swarm"
 linked_repo = "docker"
 run_directory = "authelia"
 config_files = [
-    # prettier-ignore
-    { path = "authelia.env", services = ["authelia"], requires = "Redeploy" },
-    { path = "lldap.env", services = ["lldap"], requires = "Redeploy" },
+  { path = "authelia.env", services = ["authelia"], requires = "Redeploy" },
+  { path = "lldap.env", services = ["lldap"], requires = "Redeploy" }
 ]
 environment = """
 TZ=[[TZ]]
@@ -18,97 +17,97 @@ TZ=[[TZ]]
 ##
 
 [[stack]]
-name        = "authentik"
+name = "authentik"
 description = "Service d'authentification pour les services du homelab"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/authentik"
 
 ##
 
 [[stack]]
-name        = "bazarr"
+name = "bazarr"
 description = "Service de sous-titres pour les films et séries"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/bazarr"
 
 ##
 
 [[stack]]
-name        = "bookshelf"
+name = "bookshelf"
 description = "Service de gestion de bibliothèque e-book"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/bookshelf"
 
 ##
 
 [[stack]]
-name        = "bookstack"
+name = "bookstack"
 description = "Service de gestion de documentation(wiki)"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/bookstack"
 
 ##
 
 [[stack]]
-name        = "cinesync"
+name = "cinesync"
 description = "Service d'organisation de films et séries(symlink/rename)"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/cinesync"
 
 ##
 
 [[stack]]
-name        = "cloudflare-ddns"
+name = "cloudflare-ddns"
 description = "Service de mise à jour du DNS Cloudflare"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/cloudflare-ddns"
 
 ##
 
 [[stack]]
-name        = "crowdsec"
+name = "crowdsec"
 description = "Service de détection d'intrusion"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/crowdsec"
 
 ##
 
 [[stack]]
-name        = "forgejo"
+name = "forgejo"
 description = "Service de gestion de code source"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-server        = "controlplane"
-linked_repo   = "docker"
+server = "controlplane"
+linked_repo = "docker"
 run_directory = "forgejo"
 
 ##
 
 [[stack]]
-name        = "gatus"
+name = "gatus"
 description = "Service de monitoring de services(heartbeat)"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
 server = "controlplane"
 linked_repo = "homelab"
@@ -121,58 +120,60 @@ GATUS_PUSH_TOKEN=[[gatus_push_token]]
 ##
 
 [[stack]]
-name        = "homarr"
+name = "homarr"
 description = "Service de dashboard pour les services du homelab"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/homarr"
 
 ##
 
 [[stack]]
-name        = "immich"
+name = "immich"
 description = "Service de gestion de photos"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/immich"
 
 ##
 
 [[stack]]
-name        = "jellyfin"
+name = "jellyfin"
 description = "Service de streaming de films et séries"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-server        = "link"
-linked_repo   = "homelab"
+server = "link"
+linked_repo = "homelab"
 run_directory = "stacks/jellyfin"
 
 ##
 
 [[stack]]
-name        = "jellyseerr"
+name = "jellyseerr"
 description = "Service de requêtes de films et séries"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/jellyseerr"
 
 ##
 
 [[stack]]
-name        = "komodo"
+name = "komodo"
 description = "Service d'orchestration des conteneurs"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
 swarm = "Prod Swarm"
 linked_repo = "docker"
 run_directory = "komodo"
-comfig_files = [{ path = "komodo.env", requires = "Redeploy" }]
+config_files = [
+  { path = "komodo.env", requires = "Redeploy" }
+]
 environment = """
 TZ=[[TZ]]
 """
@@ -180,20 +181,20 @@ TZ=[[TZ]]
 ##
 
 [[stack]]
-name        = "lidarr"
+name = "lidarr"
 description = "Service de gestion de musique"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/lidarr"
 
 ##
 
 [[stack]]
-name        = "ntfy"
+name = "ntfy"
 description = "Service de notification"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
 swarm = "Prod Swarm"
 linked_repo = "homelab"
@@ -209,42 +210,42 @@ PUBLIC_KEY=[[ntfy_public_key]]
 ##
 
 [[stack]]
-name        = "prometheus"
+name = "prometheus"
 description = "Service de monitoring des services et serveurs"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/prometheus"
 
 ##
 
 [[stack]]
-name        = "prowlarr"
+name = "prowlarr"
 description = "Service de gestion de indexeurs de films et séries"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/prowlarr"
 
 ##
 
 [[stack]]
-name        = "radarr"
+name = "radarr"
 description = "Service de gestion de films"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/radarr"
 
 ##
 
 [[stack]]
-name        = "recyclarr"
+name = "recyclarr"
 description = "Service profil qualité films et séries"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
 swarm = "Prod Swarm"
 linked_repo = "homelab"
@@ -258,9 +259,9 @@ pre_deploy.shell_mode = false
 ##
 
 [[stack]]
-name        = "seedbox"
+name = "seedbox"
 description = "Service de gestion de seedbox"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
 server = "merovingian"
 linked_repo = "homelab"
@@ -272,9 +273,9 @@ WIREGUARD_PRIVATE_KEY=[[seedbox_wg_priv_key]]
 ##
 
 [[stack]]
-name        = "semaphore"
+name = "semaphore"
 description = "Service d'orchestration de l'IaC"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
 swarm = "Prod Swarm"
 poll_for_updates = true
@@ -289,20 +290,20 @@ SEMAPHORE_OIDC_SECRET=[[semaphore_oidc_secret]]
 ##
 
 [[stack]]
-name        = "sonarr"
+name = "sonarr"
 description = "Service de gestion de séries"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/sonarr"
 
 ##
 
 [[stack]]
-name        = "tracearr"
+name = "tracearr"
 description = "Service de monitoring pour Jellyfin et Plex"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
 swarm = "Prod Swarm"
 linked_repo = "homelab"
@@ -317,20 +318,20 @@ REDIS_PASSWORD=[[redis_password]]
 ##
 
 [[stack]]
-name        = "traefik"
+name = "traefik"
 description = "Service de reverse proxy"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "docker"
+swarm = "Prod Swarm"
+linked_repo = "docker"
 run_directory = "traefik"
 
 ##
 
 [[stack]]
-name        = "traefik-vps"
+name = "traefik-vps"
 description = "Service de reverse proxy pour les services du VPS"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
 server = "controlplane"
 linked_repo = "homelab"
@@ -342,21 +343,21 @@ CF_DNS_API_TOKEN=[[cloudflare_api_token]]
 ##
 
 [[stack]]
-name        = "vaultwarden"
+name = "vaultwarden"
 description = "Service de gestion de mots de passe"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/vaultwarden"
 
 ##
 
 [[stack]]
-name        = "wizarr"
+name = "wizarr"
 description = "Service de gestion d'invitation pour Jellyfin"
-tags        = ["stack"]
+tags = ["stack"]
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
+swarm = "Prod Swarm"
+linked_repo = "homelab"
 run_directory = "stacks/wizarr"
