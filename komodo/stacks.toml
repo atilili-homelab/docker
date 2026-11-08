@@ -174,7 +174,7 @@ linked_repo = "docker"
 run_directory = "komodo"
 config_files = [
     # prettier-ignore
-    { path = "komodo.env", requires = "Redeploy" },
+    { path = "core.env", requires = "Redeploy" },
 ]
 environment = """
 TZ=[[TZ]]
