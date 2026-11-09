@@ -1,4 +1,26 @@
 [[variable]]
 name        = "TZ"
-value       = "Europe/Paris"
 description = "Fuseau horaire des stacks"
+value       = "Europe/Paris"
+is_secret   = false
+
+##
+
+[[variable]]
+name      = "db_host"
+value     = "tank.macopla.home"
+is_secret = false
+
+##
+
+[[variable]]
+name      = "gitlab_project_id"
+value     = "81216287"
+is_secret = false
+
+##
+
+[[variable]]
+name      = "ntfy_public_key"
+value     = "BFWBPJKdjcLEwn_faQKQC-6CwPnVbl_4YuULBTSMV14VJCJeak3Yuoe2F_tEpGpwDECwnlWSRwU_ls2Ju4YbU9I"
+is_secret = false
