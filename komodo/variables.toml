@@ -1,0 +1,4 @@
+[[variable]]
+name        = "TZ"
+value       = "Europe/Paris"
+description = "Fuseau horaire des stacks"

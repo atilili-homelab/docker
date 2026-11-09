@@ -71,3 +71,15 @@ tags        = ["sync"]
 linked_repo   = "docker"
 resource_path = ["komodo/syncs.toml"]
 match_tags    = ["sync"]
+
+##
+
+[[resource_sync]]
+name        = "Variables"
+description = "Synchro des variables non secrètes"
+tags        = ["sync"]
+[resource_sync.config]
+linked_repo       = "docker"
+resource_path     = ["komodo/variables.toml"]
+include_resources = false
+include_variables = true
