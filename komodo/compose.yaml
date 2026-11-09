@@ -14,7 +14,7 @@ services:
         - komodo_oidc_client_secret
         - komodo_webhook_secret
         - komodo_private_key
-        networks: [komodo-net, traefik-public]
+        networks: [komodo-net, traefik-lan]
         healthcheck:
             !!merge <<: *healthcheck
             test: curl -f http://127.0.0.1:9120 || exit 1
@@ -26,12 +26,11 @@ services:
             resources: {limits: {memory: 512M}}
             labels:
             - traefik.enable=true
-            - traefik.http.routers.komodo.rule=Host(`komodo.macopla.com`) && !PathPrefix(`/listener/`)
-            - traefik.http.routers.komodo.entrypoints=websecure
+            - traefik.swarm.network=traefik-lan
             - traefik.http.services.komodo.loadbalancer.server.port=9120
-            - traefik.http.routers.komodo.middlewares=local-only@file
+            - traefik.http.routers.komodo.rule=Host(`komodo.macopla.com`) && !PathPrefix(`/listener/`)
+            - traefik.http.routers.komodo.middlewares=lan@file
             - traefik.http.routers.komodo-webhooks.rule=Host(`komodo.macopla.com`) && PathPrefix(`/listener/`)
-            - traefik.http.routers.komodo-webhooks.entrypoints=websecure
             - traefik.http.routers.komodo-webhooks.service=komodo
 
     mongo:
@@ -64,4 +63,4 @@ secrets:
 
 networks:
     komodo-net: {driver: overlay}
-    traefik-public: {external: true}
+    traefik-lan: {external: true}
