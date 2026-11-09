@@ -163,7 +163,7 @@ configs:
         name: authelia_initdb_v1
         file: ./initdb.sh
     configuration:
-        name: authelia_configuration_v5
+        name: authelia_configuration_v6
         file: ./configuration.yml
 
 secrets:

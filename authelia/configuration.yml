@@ -56,6 +56,12 @@ webauthn:
 
 identity_providers:
   oidc:
+    authorization_policies:
+      admins:
+        default_policy: deny
+        rules:
+          - policy: two_factor
+            subject: "group:admins"
     jwks:
       - key_id: main
         # prettier-ignore
@@ -64,8 +70,7 @@ identity_providers:
       - client_id: komodo
         client_name: Komodo
         client_secret: "$pbkdf2-sha512$310000$PJCVtk8xLKyREjB1tEytLA$MwowVdpooyD.LPcWodAvwO5OjdsAHi9w1Z2xE9BbohRGiqlFfya42eu2UDYJ4BMlv1GIJ4F4ExyrzTGo64C5xw"
-        public: false
-        authorization_policy: two_factor
+        authorization_policy: "admins"
         require_pkce: true
         pkce_challenge_method: S256
         redirect_uris:
@@ -74,10 +79,3 @@ identity_providers:
           - openid
           - profile
           - email
-        response_types:
-          - code
-        grant_types:
-          - authorization_code
-        access_token_signed_response_alg: none
-        userinfo_signed_response_alg: none
-        token_endpoint_auth_method: client_secret_basic
