@@ -17,6 +17,11 @@ log:
 
 theme: auto
 
+password_policy:
+  standard:
+    enabled: true
+    min_length: 12
+
 authentication_backend:
   ldap:
     implementation: lldap

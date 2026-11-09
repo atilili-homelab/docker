@@ -95,7 +95,7 @@ services:
 
 configs:
     initdb: {name: authelia_initdb_v1, file: ./initdb.sh}
-    configuration: {name: authelia_configuration_v9, file: ./configuration.yml}
+    configuration: {name: authelia_configuration_v10, file: ./configuration.yml}
     logo: {name: authelia_logo_v1, file: ./assets/logo.png}
     favicon: {name: authelia_favicon_v1, file: ./assets/favicon.ico}
     template_jwt_html: {name: authelia_template_jwt_html_v1, file: ./templates/IdentityVerificationJWT.html}
