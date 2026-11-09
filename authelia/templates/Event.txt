@@ -1,0 +1,21 @@
+DU NOUVEAU SUR TON COMPTE
+
+Salut {{ .DisplayName }} !
+
+Petit message pour te prévenir que {{- if eq .BodySuffix "was added to your account." }}une méthode de double authentification (passkey ou code) a été ajoutée à ton compte.{{- else if eq .BodySuffix "was removed from your account." }}une méthode de double authentification (passkey ou code) a été supprimée de ton compte.{{- else if eq .BodyEvent "Password Reset" }}ton mot de passe a été réinitialisé.{{- else if eq .BodyEvent "Password Change" }}ton mot de passe a été changé.{{- else }}{{ .BodyPrefix }} {{ .BodyEvent }} {{ .BodySuffix }}{{ end }}
+
+----------------------------------------
+
+Détails :
+
+{{- $keys := sortAlpha (keys .Details) }}{{- range $key := $keys }}
+
+{{ $key }}: {{ index $.Details $key }}
+
+{{ end }}
+
+----------------------------------------
+
+Ce mail est pour {{ .DisplayName }}. L'action vient de l'adresse IP {{ .RemoteIP }}. Ce n'est pas toi ? Change ton mot de passe et préviens-moi directement (pas en répondant à ce mail).
+
+Propulsé par Authelia https://www.authelia.com

@@ -1,22 +1,29 @@
+x-deploy: &deploy
+    update_config: {order: stop-first, failure_action: rollback}
+    restart_policy: {delay: 10s, window: 120s}
+
+x-healthcheck: &healthcheck
+    interval: 30s
+    timeout: 5s
+    retries: 5
+    start_period: 30s
+
 services:
     authelia:
         image: authelia/authelia:4.39.28@sha256:bd97cff4fcbf715b5ff1f9ae286afbe6033afce385302520b0368122d43a6f54
         user: 1000:1000
-        env_file:
-        - ./authelia.env
-        environment:
-        - TZ=${TZ:?}
+        env_file: [./authelia.env]
+        environment: ['TZ=${TZ:?}']
         configs:
-        - source: configuration
-          target: /config/configuration.yml
-        - source: logo
-          target: /config/assets/logo.png
-        - source: favicon
-          target: /config/assets/favicon.ico
-        - source: template_jwt_html
-          target: /config/templates/IdentityVerificationJWT.html
-        - source: template_jwt_txt
-          target: /config/templates/IdentityVerificationJWT.txt
+        - {source: configuration, target: /config/configuration.yml}
+        - {source: logo, target: /config/assets/logo.png}
+        - {source: favicon, target: /config/assets/favicon.ico}
+        - {source: template_jwt_html, target: /config/templates/IdentityVerificationJWT.html}
+        - {source: template_jwt_txt, target: /config/templates/IdentityVerificationJWT.txt}
+        - {source: template_otc_html, target: /config/templates/IdentityVerificationOTC.html}
+        - {source: template_otc_txt, target: /config/templates/IdentityVerificationOTC.txt}
+        - {source: template_event_html, target: /config/templates/Event.html}
+        - {source: template_event_txt, target: /config/templates/Event.txt}
         secrets:
         - authelia_reset_password_jwt_secret
         - authelia_session_secret
@@ -26,211 +33,98 @@ services:
         - authelia_smtp_password
         - authelia_oidc_jwks_key
         - authelia_oidc_hmac_secret
-        networks:
-        - authelia-net
-        - traefik-wan
+        networks: [authelia-net, traefik-wan]
         deploy:
+            !!merge <<: *deploy
             labels:
             - traefik.enable=true
             - traefik.swarm.network=traefik-wan
             - traefik.http.routers.authelia.rule=Host(`sso.macopla.com`)
             - traefik.http.services.authelia.loadbalancer.server.port=9091
-            replicas: 1
-            placement:
-                constraints:
-                - node.labels.tier == infra
-            update_config:
-                parallelism: 1
-                order: stop-first
-                failure_action: rollback
-            rollback_config:
-                parallelism: 1
-            restart_policy:
-                condition: any
-                delay: 10s
-                window: 120s
-            resources:
-                limits:
-                    memory: 256M
+            placement: {constraints: [node.labels.tier == infra]}
+            resources: {limits: {memory: 256M}}
         healthcheck:
-            test:
-            - 'CMD'
-            - '/app/healthcheck.sh'
-            interval: 30s
-            timeout: 5s
-            retries: 3
-            start_period: 30s
+            !!merge <<: *healthcheck
+            test: ['CMD', '/app/healthcheck.sh']
 
     lldap:
         image: lldap/lldap:v0.6.3@sha256:2a8454b668c1aba7157e832eab0e242e1e7eb5fb7591d7e7774ba05286511ca8
-        entrypoint:
-        - 'tini'
-        - '--'
-        - '/bin/sh'
-        - '-c'
-        - 'export PGPASSWORD="$$(cat /run/secrets/lldap_db_password)" && exec /docker-entrypoint.sh "$$@"'
-        - 'sh'
-        command:
-        - 'run'
-        - '--config-file'
-        - '/data/lldap_config.toml'
-        env_file:
-        - ./lldap.env
-        environment:
-        - TZ=${TZ:?}
+        entrypoint: ['tini', '--', '/bin/sh', '-c', 'export PGPASSWORD="$$(cat /run/secrets/lldap_db_password)" && exec /docker-entrypoint.sh "$$@"', 'sh']
+        command: ['run', '--config-file', '/data/lldap_config.toml']
+        env_file: [./lldap.env]
+        environment: ['TZ=${TZ:?}']
         secrets:
         - lldap_db_password
         - lldap_jwt_secret
         - lldap_key_seed
         - lldap_admin_password
-        networks:
-        - authelia-net
-        - traefik-lan
+        networks: [authelia-net, traefik-lan]
         deploy:
+            !!merge <<: *deploy
             labels:
             - traefik.enable=true
             - traefik.swarm.network=traefik-lan
             - traefik.http.routers.lldap.rule=Host(`ldap.macopla.com`)
             - traefik.http.routers.lldap.middlewares=lan@file
             - traefik.http.services.lldap.loadbalancer.server.port=17170
-            replicas: 1
-            placement:
-                constraints:
-                - node.labels.tier == infra
-            update_config:
-                parallelism: 1
-                order: stop-first
-                failure_action: rollback
-            rollback_config:
-                parallelism: 1
-            restart_policy:
-                condition: any
-                delay: 10s
-                window: 120s
-            resources:
-                limits:
-                    memory: 128M
+            placement: {constraints: [node.labels.tier == infra]}
+            resources: {limits: {memory: 128M}}
         healthcheck:
-            test:
-            - 'CMD'
-            - '/app/lldap'
-            - 'healthcheck'
-            - '--config-file'
-            - '/data/lldap_config.toml'
-            interval: 30s
-            timeout: 5s
-            retries: 5
-            start_period: 30s
+            !!merge <<: *healthcheck
+            test: ['CMD', '/app/lldap', 'healthcheck', '--config-file', '/data/lldap_config.toml']
 
     postgres:
         image: postgres:18.6-trixie@sha256:e3d24f6906d0760bf4da0dae872415391ededefad23fd471c47dc53b0ddf3c42
-        command:
-        - postgres
-        - -c
-        - timezone=${TZ:?}
-        - -c
-        - log_timezone=${TZ:?}
-        environment:
-        - POSTGRES_PASSWORD_FILE=/run/secrets/authelia_postgres_password
+        command: [postgres, -c, 'timezone=${TZ:?}', -c, 'log_timezone=${TZ:?}']
+        environment: [POSTGRES_PASSWORD_FILE=/run/secrets/authelia_postgres_password]
         secrets:
         - authelia_postgres_password
         - authelia_db_password
         - lldap_db_password
-        configs:
-        - source: initdb
-          target: /docker-entrypoint-initdb.d/initdb.sh
-        volumes:
-        - type: volume
-          source: postgres
-          target: /var/lib/postgresql
-        networks:
-        - authelia-net
+        configs: [{source: initdb, target: /docker-entrypoint-initdb.d/initdb.sh}]
+        volumes: ['postgres:/var/lib/postgresql']
+        networks: [authelia-net]
         deploy:
-            replicas: 1
-            placement:
-                constraints:
-                - node.labels.tier == database
-            update_config:
-                parallelism: 1
-                order: stop-first
-                failure_action: rollback
-            rollback_config:
-                parallelism: 1
-            restart_policy:
-                condition: any
-                delay: 30s
-                window: 300s
-            resources:
-                limits:
-                    memory: 320M
+            !!merge <<: *deploy
+            placement: {constraints: [node.labels.tier == database]}
+            resources: {limits: {memory: 320M}}
+            restart_policy: {delay: 30s, window: 300s}
         healthcheck:
-            test:
-            - 'CMD-SHELL'
-            - 'pg_isready -U postgres'
-            interval: 30s
-            timeout: 5s
-            retries: 5
-            start_period: 30s
+            !!merge <<: *healthcheck
+            test: ['CMD-SHELL', 'pg_isready -U postgres']
 
 configs:
-    initdb:
-        name: authelia_initdb_v1
-        file: ./initdb.sh
-    configuration:
-        name: authelia_configuration_v8
-        file: ./configuration.yml
-    logo:
-        name: authelia_logo_v1
-        file: ./assets/logo.png
-    favicon:
-        name: authelia_favicon_v1
-        file: ./assets/favicon.ico
-    template_jwt_html:
-        name: authelia_template_jwt_html_v1
-        file: ./templates/IdentityVerificationJWT.html
-    template_jwt_txt:
-        name: authelia_template_jwt_txt_v1
-        file: ./templates/IdentityVerificationJWT.txt
+    initdb: {name: authelia_initdb_v1, file: ./initdb.sh}
+    configuration: {name: authelia_configuration_v9, file: ./configuration.yml}
+    logo: {name: authelia_logo_v1, file: ./assets/logo.png}
+    favicon: {name: authelia_favicon_v1, file: ./assets/favicon.ico}
+    template_jwt_html: {name: authelia_template_jwt_html_v1, file: ./templates/IdentityVerificationJWT.html}
+    template_jwt_txt: {name: authelia_template_jwt_txt_v1, file: ./templates/IdentityVerificationJWT.txt}
+    template_otc_html: {name: authelia_template_otc_html_v1, file: ./templates/IdentityVerificationOTC.html}
+    template_otc_txt: {name: authelia_template_otc_txt_v1, file: ./templates/IdentityVerificationOTC.txt}
+    template_event_html: {name: authelia_template_event_html_v1, file: ./templates/Event.html}
+    template_event_txt: {name: authelia_template_event_txt_v1, file: ./templates/Event.txt}
 
 secrets:
-    authelia_postgres_password:
-        external: true
-    authelia_db_password:
-        external: true
-    authelia_ldap_password:
-        external: true
-    authelia_reset_password_jwt_secret:
-        external: true
-    authelia_session_secret:
-        external: true
-    authelia_storage_encryption_key:
-        external: true
-    authelia_smtp_password:
-        external: true
-    authelia_oidc_jwks_key:
-        external: true
-    authelia_oidc_hmac_secret:
-        external: true
-    lldap_db_password:
-        external: true
-    lldap_jwt_secret:
-        external: true
-    lldap_key_seed:
-        external: true
-    lldap_admin_password:
-        external: true
+    authelia_postgres_password: {external: true}
+    authelia_db_password: {external: true}
+    authelia_ldap_password: {external: true}
+    authelia_reset_password_jwt_secret: {external: true}
+    authelia_session_secret: {external: true}
+    authelia_storage_encryption_key: {external: true}
+    authelia_smtp_password: {external: true}
+    authelia_oidc_jwks_key: {external: true}
+    authelia_oidc_hmac_secret: {external: true}
+    lldap_db_password: {external: true}
+    lldap_jwt_secret: {external: true}
+    lldap_key_seed: {external: true}
+    lldap_admin_password: {external: true}
 
 volumes:
     postgres:
-        driver_opts:
-            type: none
-            o: bind
-            device: /data/authelia/db
+        driver_opts: {type: none, o: bind, device: /data/authelia/db}
 
 networks:
-    authelia-net:
-        driver: overlay
-    traefik-lan:
-        external: true
-    traefik-wan:
-        external: true
+    authelia-net: {driver: overlay}
+    traefik-lan: {external: true}
+    traefik-wan: {external: true}

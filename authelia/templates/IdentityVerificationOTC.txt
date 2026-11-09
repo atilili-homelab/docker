@@ -1,0 +1,31 @@
+VOICI TON CODE DE VÉRIFICATION
+
+Salut {{ .DisplayName }} !
+
+Tu es en train de modifier la sécurité de ton compte sur {{ .Domain }} (par exemple ajouter une passkey). Ce code sert à vérifier que c'est bien toi.
+
+Ne donne ce code à personne, même pas à moi.
+
+Recopie-le uniquement dans la fenêtre ouverte dans ton navigateur :
+
+----------------------------------------
+
+{{ .OneTimeCode }}
+
+----------------------------------------
+
+Ce n'est PAS toi ? Quelqu'un a peut-être ton mot de passe. Dans ce cas :
+
+ 1. Annule le code avec l'adresse ci-dessous
+ 2. Change ton mot de passe
+ 3. Préviens-moi directement (pas en répondant à ce mail)
+
+Pour annuler, ouvre ce lien :
+
+{{ .RevocationLinkURL }}
+
+----------------------------------------
+
+Ce mail est pour {{ .DisplayName }}. La demande vient de l'adresse IP {{ .RemoteIP }}. Un doute ? Suis les étapes ci-dessus.
+
+Propulsé par Authelia https://www.authelia.com
