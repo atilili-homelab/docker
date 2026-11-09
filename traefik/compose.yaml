@@ -1,47 +1,32 @@
+x-deploy: &deploy
+    mode: global
+    update_config:
+        delay: 10s
+        failure_action: rollback
+        order: stop-first
+    restart_policy:
+        delay: 10s
+        window: 120s
+x-healthcheck: &healthcheck
+    interval: 15s
+    timeout: 5s
+    start_period: 10s
+    retries: 3
+
 services:
     socket-proxy:
         image: ghcr.io/tecnativa/docker-socket-proxy:v0.5.0@sha256:1f5038b54f06c3e18422902cf00ba21803d1c97805aae032e5e6673d532d3459
-        volumes:
-        - /var/run/docker.sock:/var/run/docker.sock:ro
-        environment:
-        - TZ=Europe/Paris
-        - NETWORKS=1
-        - SERVICES=1
-        - TASKS=1
-        - NODES=1
-        - CONTAINERS=1
-        - INFO=1
-        - SWARM=1
-        networks:
-            socket-proxy:
-                aliases:
-                - socket-proxy
+        volumes: ['/var/run/docker.sock:/var/run/docker.sock:ro']
+        env_file: [./socket-proxy.env]
+        environment: ['TZ=${TZ:?}']
+        networks: [socket-proxy]
         healthcheck:
+            !!merge <<: *healthcheck
             test: wget --no-verbose --tries=1 --spider http://127.0.0.1:2375/version || exit 1
-            interval: 30s
-            timeout: 5s
-            start_period: 5s
-            retries: 3
         deploy:
-            mode: global
-            update_config:
-                parallelism: 1
-                delay: 10s
-                failure_action: rollback
-                order: stop-first
-            rollback_config:
-                parallelism: 1
-            restart_policy:
-                condition: any
-                delay: 10s
-                max_attempts: 0
-                window: 120s
-            resources:
-                limits:
-                    memory: 32M
-            placement:
-                constraints:
-                - node.role == manager
+            !!merge <<: *deploy
+            resources: {limits: {memory: 32M}}
+            placement: {constraints: [node.role == manager]}
 
     traefik:
         image: traefik:v3.7@sha256:f4bb143d1135a579b630ed491e17ec50f6f7c9c6a30585ff3d385471d2a86f5a
@@ -89,85 +74,33 @@ services:
         - --entrypoints.websecure.http.middlewares=crowdsec@file
         # Ping (healthcheck)
         - --ping=true
-        volumes:
-        - /data/gluster/traefik:/letsencrypt
+        volumes: ['/data/gluster/traefik:/letsencrypt']
         configs:
-        - source: middlewares
-          target: /dynamic/middlewares.yml
-        - source: external
-          target: /dynamic/external.yml
-        secrets:
-        - cloudflare_api_token
-        - traefik_crowdsec_lapi_key
-        environment:
-        - TZ=Europe/Paris
-        - CF_DNS_API_TOKEN_FILE=/run/secrets/cloudflare_api_token
+        - {source: middlewares, target: /dynamic/middlewares.yml}
+        - {source: external, target: /dynamic/external.yml}
+        secrets: [traefik_cloudflare_api_token, traefik_crowdsec_lapi_key]
+        environment: ['TZ=${TZ:?}', CF_DNS_API_TOKEN_FILE=/run/secrets/traefik_cloudflare_api_token]
         ports:
-        - target: 80
-          published: 80
-          protocol: tcp
-          mode: host
-        - target: 443
-          published: 443
-          protocol: tcp
-          mode: host
-        networks:
-        - socket-proxy
-        - traefik-lan
-        - traefik-wan
-        - traefik-public
-        - net-security
-        healthcheck:
-            test: traefik healthcheck --ping
-            interval: 15s
-            timeout: 5s
-            start_period: 10s
-            retries: 3
+        - {target: 80, published: 80, protocol: tcp, mode: host}
+        - {target: 443, published: 443, protocol: tcp, mode: host}
+        networks: [socket-proxy, traefik-lan, traefik-wan, traefik-public, net-security]
+        healthcheck: {!!merge <<: *healthcheck, test: traefik healthcheck --ping}
         deploy:
-            mode: global
-            update_config:
-                parallelism: 1
-                delay: 10s
-                failure_action: rollback
-                order: stop-first
-            rollback_config:
-                parallelism: 1
-            restart_policy:
-                condition: any
-                delay: 10s
-                max_attempts: 0
-                window: 120s
-            resources:
-                limits:
-                    memory: 256M
-            placement:
-                constraints:
-                - node.labels.traefik == true
+            !!merge <<: *deploy
+            resources: {limits: {memory: 256M}}
+            placement: {constraints: [node.labels.traefik == true]}
 
 networks:
-    socket-proxy:
-        external: true
-    traefik-lan:
-        name: traefik-lan
-        driver: overlay
-    traefik-wan:
-        name: traefik-wan
-        driver: overlay
-    traefik-public:
-        external: true
-    net-security:
-        external: true
+    socket-proxy: {external: true}
+    traefik-lan: {name: traefik-lan, driver: overlay}
+    traefik-wan: {name: traefik-wan, driver: overlay}
+    traefik-public: {external: true}
+    net-security: {external: true}
 
 configs:
-    middlewares:
-        name: traefik_middlewares_v3
-        file: ./middlewares.yml
-    external:
-        name: traefik_external_v2
-        file: ./external.yml
+    middlewares: {name: traefik_middlewares_v3, file: ./middlewares.yml}
+    external: {name: traefik_external_v2, file: ./external.yml}
 
 secrets:
-    cloudflare_api_token:
-        external: true
-    traefik_crowdsec_lapi_key:
-        external: true
+    traefik_cloudflare_api_token: {external: true}
+    traefik_crowdsec_lapi_key: {external: true}
