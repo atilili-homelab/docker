@@ -13,6 +13,10 @@ services:
           target: /config/assets/logo.png
         - source: favicon
           target: /config/assets/favicon.ico
+        - source: template_jwt_html
+          target: /config/templates/IdentityVerificationJWT.html
+        - source: template_jwt_txt
+          target: /config/templates/IdentityVerificationJWT.txt
         secrets:
         - authelia_reset_password_jwt_secret
         - authelia_session_secret
@@ -173,7 +177,7 @@ configs:
         name: authelia_initdb_v1
         file: ./initdb.sh
     configuration:
-        name: authelia_configuration_v7
+        name: authelia_configuration_v8
         file: ./configuration.yml
     logo:
         name: authelia_logo_v1
@@ -181,6 +185,12 @@ configs:
     favicon:
         name: authelia_favicon_v1
         file: ./assets/favicon.ico
+    template_jwt_html:
+        name: authelia_template_jwt_html_v1
+        file: ./templates/IdentityVerificationJWT.html
+    template_jwt_txt:
+        name: authelia_template_jwt_txt_v1
+        file: ./templates/IdentityVerificationJWT.txt
 
 secrets:
     authelia_postgres_password:

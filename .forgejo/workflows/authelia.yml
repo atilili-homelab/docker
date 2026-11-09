@@ -27,6 +27,7 @@ jobs:
           mv "$secrets/private.pem" "$secrets/authelia_oidc_jwks_key"
           podman run --rm \
             -v "$PWD/authelia/configuration.yml:/config/configuration.yml:ro" \
+            -v "$PWD/authelia/tempaltes:/config/templates:ro" \
             -v "$PWD/authelia/assets:/config/assets:ro" \
             -v "$secrets:/run/secrets:ro" \
             -e X_AUTHELIA_CONFIG_FILTERS=template \

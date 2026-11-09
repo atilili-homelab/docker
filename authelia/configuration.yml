@@ -36,6 +36,7 @@ storage:
     username: authelia
 
 notifier:
+  template_path: /config/templates/
   smtp:
     address: submission://mail.macopla.com:587
     username: noreply@macopla.com

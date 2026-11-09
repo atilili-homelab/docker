@@ -1,0 +1,31 @@
+VOICI TON LIEN À USAGE UNIQUE
+
+Salut {{ .DisplayName }} !
+
+Tu as demandé une action sur ton compte (par exemple changer ton mot de passe) sur {{ .Domain }}. Il ne reste plus qu'à confirmer.
+
+Ne transfère ce mail à personne : le lien donne accès à ton compte.
+
+----------------------------------------
+
+C'est bien toi ? Ouvre ce lien :
+
+{{ .LinkURL }}
+
+----------------------------------------
+
+Ce n'est PAS toi ? Quelqu'un a peut-être ton mot de passe. Dans ce cas :
+
+ 1. Annule le lien avec l'adresse ci-dessous
+ 2. Change ton mot de passe
+ 3. Préviens-moi directement (pas en répondant à ce mail)
+
+Pour annuler, ouvre ce lien :
+
+{{ .RevocationLinkURL }}
+
+----------------------------------------
+
+Ce mail est pour {{ .DisplayName }}. La demande vient de l'adresse IP {{ .RemoteIP }}. Un doute ? Suis les étapes ci-dessus.
+
+Propulsé par Authelia https://www.authelia.com
