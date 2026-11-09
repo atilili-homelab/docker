@@ -175,9 +175,6 @@ config_files = [
     # prettier-ignore
     { path = "core.env", requires = "Redeploy" },
 ]
-environment = """
-TZ=[[TZ]]
-"""
 
 ##
 
