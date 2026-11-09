@@ -323,13 +323,10 @@ name        = "traefik"
 description = "Service de reverse proxy"
 tags        = ["stack"]
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "docker"
+swarm         = "Prod Swarm"
+linked_repo   = "docker"
 run_directory = "traefik"
-config_files = [{ path = "socket-proxy.env", requires = "Redeploy" }]
-environment = """
-TZ=[[TZ]]
-"""
+config_files  = [{ path = "socket-proxy.env", requires = "Redeploy" }]
 
 ##
 
