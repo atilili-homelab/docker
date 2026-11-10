@@ -8,7 +8,7 @@ services:
         - PROXIED=false
         - IP6_PROVIDER=none
         - UPDATE_CRON=@every 5m
-        - SHOUTRRR=generic+https://apprise.macopla.com/apprise?template=json&messagekey=body&$$tag=infra-warning
+        - SHOUTRRR=generic://apprise.macopla.com/notify/apprise?template=json&messagekey=body&$$tag=infra-warning
         secrets: [cloudflare_ddns_api_token]
         volumes:
         - type: tmpfs
