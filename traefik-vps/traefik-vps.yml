@@ -18,7 +18,7 @@ certificatesResolvers:
         provider: cloudflare
         resolvers: ["1.1.1.1:53", "8.8.8.8:53"]
 
-providers: { file: { directory: /dymamic } }
+providers: { file: { directory: /dynamic } }
 
 log: { level: INFO }
 accesslog: {}
