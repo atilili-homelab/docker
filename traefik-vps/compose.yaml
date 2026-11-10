@@ -1,0 +1,44 @@
+# Traefik du VPS OVH (controlplane)
+services:
+    traefik:
+        image: traefik:v3.7@sha256:24841fe2de7304c149343d877d2923b4c8800a38ba015dea9174c23b20e344a0
+        restart: unless-stopped
+        volumes: ['letsencrypt:/letsencrypt']
+        configs:
+        - {source: external, target: /dynamic/external.yml}
+        - {source: static, target: /etc/traefik/traefik.yml}
+        environment:
+        - TZ=Europe/Paris
+        - CF_DNS_API_TOKEN_FILE=/run/secrets/traefik_cloudflare_api_token
+        secrets: [traefik_cloudflare_api_token]
+        # Publication sur l'IP du tunnel uniquement : Docker contourne UFW,
+        # un "80:80" serait exposé sur l'IP publique.
+        ports: ['10.86.99.6:80:80', '10.86.99.6:443:443']
+        # PDM tourne sur l'hôte, pas dans Docker
+        extra_hosts: ['host.docker.internal:host-gateway']
+        networks: [proxy]
+        security_opt: ['no-new-privileges:true']
+        healthcheck:
+            test: traefik healthcheck --ping
+            interval: 15s
+            timeout: 5s
+            start_period: 10s
+            retries: 3
+        deploy: {resources: {limits: {memory: 256M}}}
+
+volumes:
+    letsencrypt:
+
+networks:
+    proxy:
+        name: proxy
+        driver_opts: {com.docker.network.bridge.name: br-proxy}
+        ipam: {config: [{subnet: 172.30.0.0/24}]}
+
+configs:
+    external: {name: traefik_external, file: ./external-vps.yml}
+    static: {name: traefik_static, file: ./traefik-vps.yml}
+
+secrets:
+    traefik_cloudflare_api_token:
+        file: /etc/docker-secrets/traefik_cloudflare_api_token

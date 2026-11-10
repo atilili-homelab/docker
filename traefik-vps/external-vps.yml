@@ -1,0 +1,40 @@
+http:
+  routers:
+    pdm:
+      rule: Host(`pdm.macopla.com`)
+      entryPoints:
+        - websecure
+      service: pdm
+
+    status:
+      rule: Host(`status.macopla.com`)
+      entryPoints:
+        - websecure
+      service: gatus
+
+    forge:
+      rule: Host(`forge.macopla.com`)
+      entryPoints:
+        - websecure
+      service: forgejo
+
+  services:
+    pdm:
+      loadBalancer:
+        serversTransport: pdm-selfsigned
+        servers:
+          - url: https://host.docker.internal:8443
+
+    gatus:
+      loadBalancer:
+        servers:
+          - url: http://gatus:8080
+
+    forgejo:
+      loadBalancer:
+        servers:
+          - url: http://forgejo:3000
+
+  serversTransports:
+    pdm-selfsigned:
+      insecureSkipVerify: true

@@ -331,11 +331,12 @@ description = "Service de reverse proxy pour les services du VPS"
 tags        = ["stack"]
 [stack.config]
 server = "controlplane"
-linked_repo = "homelab"
-run_directory = "stacks/traefik-vps"
-environment = """
-CF_DNS_API_TOKEN=[[cloudflare_api_token]]
-"""
+linked_repo = "docker"
+run_directory = "traefik-vps"
+config_files = [
+    { path = "traefik-vps.yml", requires = "Redeploy" },
+    { path = "external-vps.yml", requires = "Redeploy" },
+]
 
 ##
 
