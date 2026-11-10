@@ -1,12 +1,7 @@
 x-deploy: &deploy
     mode: global
-    update_config:
-        delay: 10s
-        failure_action: rollback
-        order: stop-first
-    restart_policy:
-        delay: 10s
-        window: 120s
+    update_config: {delay: 10s, failure_action: rollback, order: stop-first}
+    restart_policy: {delay: 10s, window: 120s}
 
 x-healthcheck: &healthcheck
     interval: 15s
@@ -49,11 +44,11 @@ services:
             placement: {constraints: [node.labels.traefik == true]}
 
 networks:
-    socket-proxy: {external: true}
     traefik-lan: {name: traefik-lan, driver: overlay}
     traefik-wan: {name: traefik-wan, driver: overlay}
     traefik-public: {external: true}
     net-security: {external: true}
+    socket-proxy: {external: true}
 
 configs:
     middlewares: {name: traefik_middlewares_v3, file: ./middlewares.yml}

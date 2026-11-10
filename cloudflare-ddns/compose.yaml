@@ -1,0 +1,25 @@
+services:
+    cloudflare-ddns:
+        image: favonia/cloudflare-ddns:1.17.1@sha256:5e61736b982b87d84a1120b4767c4deff0f2cc55ca3ee9dcb1dc58623039b5cb
+        environment:
+        - TZ=Europe/Paris
+        - CLOUDFLARE_API_TOKEN_FILE=/run/secrets/cloudflare_ddns_api_token
+        - DOMAINS=macopla.com,*.macopla.com,mail.macopla.com
+        - PROXIED=false
+        - IP6_PROVIDER=none
+        - UPDATE_CRON=@every 5m
+        - SHOUTRRR=generic+https://apprise.macopla.com/apprise?template=json&messagekey=body&$$tag=infra-warning
+        secrets: [cloudflare_ddns_api_token]
+        volumes:
+        - type: tmpfs
+          target: /tmp
+          tmpfs: {size: 5242880, mode: 1777}
+        read_only: true
+        deploy:
+            placement: {constraints: [node.labels.tier == infra]}
+            resources: {limits: {memory: 32M}}
+            update_config: {failure_action: rollback, order: stop-first}
+            restart_policy: {delay: 30s}
+
+secrets:
+    cloudflare_ddns_api_token: {external: true}

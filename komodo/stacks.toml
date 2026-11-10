@@ -74,8 +74,8 @@ description = "Service de mise à jour du DNS Cloudflare"
 tags        = ["stack"]
 [stack.config]
 swarm         = "Prod Swarm"
-linked_repo   = "homelab"
-run_directory = "stacks/cloudflare-ddns"
+linked_repo   = "docker"
+run_directory = "cloudflare-ddns"
 
 ##
 

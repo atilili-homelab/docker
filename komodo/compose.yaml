@@ -19,8 +19,8 @@ services:
             !!merge <<: *healthcheck
             test: curl -f http://127.0.0.1:9120 || exit 1
         deploy:
-            # Sans état exclusif : le nouveau Core démarre avant l'arrêt de l'ancien
-            update_config: {delay: 10s, failure_action: rollback, order: start-first}
+            update_config: {failure_action: rollback, order: start-first}
+            rollback_config: {order: start-first}
             restart_policy: {delay: 10s, window: 120s}
             placement: {constraints: [node.labels.tier == infra]}
             resources: {limits: {memory: 512M}}
@@ -47,7 +47,7 @@ services:
             !!merge <<: *healthcheck
             test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
         deploy:
-            update_config: {delay: 10s, failure_action: rollback, order: stop-first}
+            update_config: {failure_action: rollback, order: stop-first}
             restart_policy: {delay: 10s, window: 120s}
             placement: {constraints: [node.labels.tier == database]}
             resources: {limits: {memory: 512M}}

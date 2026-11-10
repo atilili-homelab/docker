@@ -1,6 +1,6 @@
 x-deploy: &deploy
     update_config: {order: stop-first, failure_action: rollback, monitor: 90s}
-    restart_policy: {delay: 10s}
+    restart_policy: {delay: 10s, window: 120s}
 
 x-healthcheck: &healthcheck
     interval: 30s
