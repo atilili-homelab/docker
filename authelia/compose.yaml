@@ -105,9 +105,9 @@ services:
             test: ['CMD-SHELL', 'pg_isready -U postgres']
 
 configs:
+    configuration: {name: authelia_configuration_v11, file: ./configuration.yml}
     initdb: {name: authelia_initdb_v1, file: ./initdb.sh}
     waitfor: {name: authelia_waitfor_v1, file: ./waitfor.sh}
-    configuration: {name: authelia_configuration_v10, file: ./configuration.yml}
     logo: {name: authelia_logo_v1, file: ./assets/logo.png}
     favicon: {name: authelia_favicon_v1, file: ./assets/favicon.ico}
     template_jwt_html: {name: authelia_template_jwt_html_v1, file: ./templates/IdentityVerificationJWT.html}
