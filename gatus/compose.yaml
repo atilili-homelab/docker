@@ -1,0 +1,23 @@
+services:
+    gatus:
+        image: ghcr.io/twin/gatus:v5.37.0@sha256:094eb186e55235db367e90e9d56140e5897b7044c41de23cde4cc18e6da1242e
+        restart: unless-stopped
+        user: 1000:1000
+        env_file: [/etc/docker-secrets/gatus.env]
+        environment: [TZ=Europe/Paris]
+        configs: [{source: config, target: /config/config.yaml}]
+        networks: [proxy]
+        volumes:
+        - gatus-data:/data
+        cap_drop: [ALL]
+        security_opt: ['no-new-privileges:true']
+        deploy: {resources: {limits: {memory: 128M}}}
+
+networks:
+    proxy: {external: true}
+
+volumes:
+    gatus-data: {driver_opts: {type: none, o: bind, device: /data/gatus}}
+
+configs:
+    config: {name: gatus_config, file: ./config.yaml}

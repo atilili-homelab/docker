@@ -107,13 +107,10 @@ name        = "gatus"
 description = "Service de monitoring de services(heartbeat)"
 tags        = ["stack"]
 [stack.config]
-server = "controlplane"
-linked_repo = "homelab"
-run_directory = "stacks/gatus"
-environment = """
-GATUS_NTFY_TOPIC=[[gatus_ntfy_topic]]
-GATUS_PUSH_TOKEN=[[gatus_push_token]]
-"""
+server        = "controlplane"
+linked_repo   = "docker"
+run_directory = "gatus"
+config_files  = [{ path = "config.yaml", requires = "Redeploy" }]
 
 ##
 

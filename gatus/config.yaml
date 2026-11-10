@@ -1,0 +1,94 @@
+storage:
+  type: sqlite
+  path: /data/data.db
+
+ui:
+  title: Statut homelab | Gatus
+  header: Homelab vu de l'extérieur
+
+alerting:
+  ntfy:
+    url: https://ntfy.sh
+    topic: ${NTFY_TOPIC}
+    priority: 4
+    default-alert:
+      failure-threshold: 3
+      success-threshold: 2
+      send-on-resolved: true
+
+# Les sondes internes interrogent directement le DNS du cluster : sur le VPS,
+# systemd-resolved interroge aussi le DNS OVH, qui répond l'IP publique du
+# joker *.macopla.com.
+client-homelab: &client-homelab
+  dns-resolver: udp://10.86.30.40:53
+  timeout: 10s
+
+external-endpoints:
+  - name: grafana-alerting
+    group: heartbeat
+    token: ${PUSH_TOKEN}
+    # Grafana pousse toutes les 1 à 2 min ; 2 vérifications ratées d'affilée
+    # = alerte 10 à 15 min après le dernier push.
+    heartbeat:
+      interval: 5m
+    alerts:
+      - type: ntfy
+        failure-threshold: 2
+        minimum-reminder-interval: 2h
+        description: "Plus de heartbeat de Grafana : la chaîne d'alerte du homelab est muette"
+        provider-override:
+          priority: 5
+
+endpoints:
+  - name: proxmox
+    group: homelab
+    url: https://pve.macopla.com
+    interval: 1m
+    client: *client-homelab
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: ntfy
+        description: "API Proxmox injoignable via Traefik (VIP .30)"
+
+  - name: ntfy
+    group: homelab
+    url: https://ntfy.macopla.com/v1/health
+    interval: 1m
+    client: *client-homelab
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY].healthy == true"
+    alerts:
+      - type: ntfy
+        description: "ntfy du homelab injoignable : les alertes internes ne partent plus"
+
+  - name: meganode
+    group: noeuds
+    url: icmp://10.86.30.11
+    interval: 1m
+    conditions:
+      - "[CONNECTED] == true"
+    alerts:
+      - type: ntfy
+        description: "meganode ne répond plus au ping"
+
+  - name: supernode
+    group: noeuds
+    url: icmp://10.86.30.12
+    interval: 1m
+    conditions:
+      - "[CONNECTED] == true"
+    alerts:
+      - type: ntfy
+        description: "supernode ne répond plus au ping"
+
+  - name: mininode
+    group: noeuds
+    url: icmp://10.86.30.13
+    interval: 1m
+    conditions:
+      - "[CONNECTED] == true"
+    alerts:
+      - type: ntfy
+        description: "mininode ne répond plus au ping"
