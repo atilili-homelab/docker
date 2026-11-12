@@ -1,0 +1,259 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/recyclarr/recyclarr/master/schemas/config-schema.json
+
+###################################################################################################
+# Recyclarr Configuration - Homelab Yoann
+# SonarrHD - French HD Bluray + WEB (MULTi.VO) === French HD Anime also included
+###################################################################################################
+
+sonarr:
+  sonarrhd:
+    base_url: http://sonarrhd:8989
+    api_key: !secret sonarrhd_api_key
+    quality_definition:
+      type: series
+    quality_profiles:
+      - trash_id: 4c48f506c1116a3a57ae33f12346bd15
+        name: FR-MULTi-VO-WEB-1080p
+        reset_unmatched_scores:
+          enabled: true
+    custom_formats:
+      # ==================== SÉRIES ====================
+      # === Qualité (éviter les mauvaises releases) ===
+      - trash_ids:
+          - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups
+          - 82d40da2bc6923f41e14394075dd4b03 # No-RlsGroup
+          - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
+          - 06d66ab109d4d2eddb2794d21526d140 # Retags
+        assign_scores_to:
+          - name: FR-MULTi-VO-WEB-1080p
+      # === x265 HD : Préféré (économie stockage) ===
+      - trash_ids:
+          - 47435ece6b99a0b477caf360e79ba0bb # x265 (HD)
+        assign_scores_to:
+          - name: FR-MULTi-VO-WEB-1080p
+            score: 25
+      # === Versions françaises (Séries) ===
+      - trash_ids:
+          - 2c29a39a4fdfd6d258799bc4c09731b9 # VFF
+        assign_scores_to:
+          - name: FR-MULTi-VO-WEB-1080p
+            score: 101
+      - trash_ids:
+          - 7ae924ee9b2f39df3283c6c0beb8a2aa # VOF
+          - b6816a0e1d4b64bf3550ad3b74b009b6 # VFI
+          - 34789ec3caa819f087e23bbf9999daf7 # VF2
+          - 0ce1e39a4676c6692ce47935278dac76 # VFB
+        assign_scores_to:
+          - name: FR-MULTi-VO-WEB-1080p
+            score: 50
+      - trash_ids:
+          - 7a7f4e4f58bd1058440236d033a90b67 # VFQ
+          - 802dd70b856c423a9b0cb7f34ac42be1 # VOQ
+          - 82085412d9a53ba8d8e46fc624eb701d # VQ
+        assign_scores_to:
+          - name: FR-MULTi-VO-WEB-1080p
+            score: -50
+      # ==================== ANIME ====================
+      # === FR Anime FanSub (préféré) ===
+      - trash_ids:
+          - 44b6c964dad997577d793fd004a39224 # FR Anime FanSub
+        assign_scores_to:
+          - name: FR-ANIME-MULTi
+            score: 1700
+      # === Uncensored ===
+      - trash_ids:
+          - 026d5aadd1a6b4e550b134cb6c72b3ca # Uncensored
+        assign_scores_to:
+          - name: FR-ANIME-MULTi
+            score: 100
+      # === 10bit ===
+      - trash_ids:
+          - b2550eb333d27b75833e25b8c2557b38 # 10bit
+        assign_scores_to:
+          - name: FR-ANIME-MULTi
+            score: 100
+      # === Anime Dual Audio ===
+      - trash_ids:
+          - 418f50b10f1907201b6cfdf881f467b7 # Anime Dual Audio
+        assign_scores_to:
+          - name: FR-ANIME-MULTi
+            score: 100
+
+  ###################################################################################################
+  # Recyclarr Configuration - Homelab Yoann
+  # Sonarr4K - French UHD Bluray + WEB (MULTi.VO)
+  ###################################################################################################
+  sonarr4k:
+    base_url: http://sonarr4k:8990
+    api_key: !secret sonarr4k_api_key
+    quality_definition:
+      type: series
+    quality_profiles:
+      - name: FR-MULTi-VO-WEB-2160p
+    custom_formats:
+      # === Dolby Vision sans fallback (éviter) ===
+      - trash_ids:
+          - 9b27ab6498ec0f31a3353992e19434ca # DV (w/o HDR fallback)
+        assign_scores_to:
+          - name: FR-MULTi-VO-WEB-2160p
+      # === SDR bloqué ===
+      - trash_ids:
+          - 2016d1676f5ee13a5b7257ff86ac9a93 # SDR
+        assign_scores_to:
+          - name: FR-MULTi-VO-WEB-2160p
+      # === Qualité (éviter les mauvaises releases) ===
+      - trash_ids:
+          - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups
+          - 82d40da2bc6923f41e14394075dd4b03 # No-RlsGroup
+          - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
+          - 06d66ab109d4d2eddb2794d21526d140 # Retags
+        assign_scores_to:
+          - name: FR-MULTi-VO-WEB-2160p
+      # === Versions françaises ===
+      - trash_ids:
+          - 2c29a39a4fdfd6d258799bc4c09731b9 # VFF
+        assign_scores_to:
+          - name: FR-MULTi-VO-WEB-2160p
+            score: 101
+      - trash_ids:
+          - 7ae924ee9b2f39df3283c6c0beb8a2aa # VOF
+          - b6816a0e1d4b64bf3550ad3b74b009b6 # VFI
+          - 34789ec3caa819f087e23bbf9999daf7 # VF2
+          - 0ce1e39a4676c6692ce47935278dac76 # VFB
+        assign_scores_to:
+          - name: FR-MULTi-VO-WEB-2160p
+            score: 50
+      - trash_ids:
+          - 7a7f4e4f58bd1058440236d033a90b67 # VFQ
+          - 802dd70b856c423a9b0cb7f34ac42be1 # VOQ
+          - 82085412d9a53ba8d8e46fc624eb701d # VQ
+        assign_scores_to:
+          - name: FR-MULTi-VO-WEB-2160p
+            score: -50
+###################################################################################################
+# Recyclarr Configuration - Homelab Yoann
+# RadarrHD - French HD Bluray + WEB (MULTi.VO)
+###################################################################################################
+radarr:
+  radarrhd:
+    base_url: http://radarrhd:7878
+    api_key: !secret radarrhd_api_key
+    quality_definition:
+      type: movie
+    quality_profiles:
+      - trash_id: 2572ce3ea4eef1c19d59e0e20ed1cea7
+        name: FR-MULTi-VO-HD
+        reset_unmatched_scores:
+          enabled: true
+    custom_formats:
+      # === Movie Versions ===
+      - trash_ids:
+          - eecf3a857724171f968a66cb5719e152 # IMAX
+          - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
+        assign_scores_to:
+          - name: FR-MULTi-VO-HD
+      # === Qualité (éviter les mauvaises releases) ===
+      - trash_ids:
+          - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
+          - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
+          - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
+          - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
+        assign_scores_to:
+          - name: FR-MULTi-VO-HD
+      # === x265 HD : Préféré (économie stockage) ===
+      - trash_ids:
+          - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
+        assign_scores_to:
+          - name: FR-MULTi-VO-HD
+            score: 25
+      # === Versions françaises ===
+      - trash_ids:
+          - 404c08fd0bd67f39b4d8e5709319094e # VFF
+        assign_scores_to:
+          - name: FR-MULTi-VO-HD
+            score: 101
+      - trash_ids:
+          - 4cafa20d5584f6ba1871d1b8941aa3cb # VOF
+          - 52772f1cad6b5d26c2551f79bc538a50 # VFI
+          - 29b5f7b1a5f20f64228786c3ab1bdc7d # VF2
+          - b3fb499641d7b3c2006be1d9eb014cb3 # VFB
+        assign_scores_to:
+          - name: FR-MULTi-VO-HD
+            score: 50
+      - trash_ids:
+          - b6ace47331a1d3b77942fc18156f6df6 # VFQ
+          - f7caa1942be5cc547c266bd3dbc2cda9 # VOQ
+          - 95aa50f71a01c82354a7a2b385f1c4d8 # VQ
+        assign_scores_to:
+          - name: FR-MULTi-VO-HD
+            score: -50
+
+  ###################################################################################################
+  # Recyclarr Configuration - Homelab Yoann
+  # Radarr4K - French UHD Bluray + WEB (MULTi.VO)
+  ###################################################################################################
+  radarr4k:
+    base_url: http://radarr4k:7879
+    api_key: !secret radarr4k_api_key
+    quality_definition:
+      type: movie
+    quality_profiles:
+      - name: FR-MULTi-VO-UHD
+    custom_formats:
+      # === Audio avancé ===
+      - trash_ids:
+          - 496f355514737f7d83bf7aa4d24f8169 # TrueHD Atmos
+          - 2f22d89048b01681dde8afe203bf2e95 # DTS X
+          - 417804f7f2c4308c1f4c5d380d4c4475 # ATMOS (undefined)
+          - 1af239278386be2919e1bcee0bde047e # DD+ ATMOS
+          - 3cafb66171b47f226146a0770576870f # TrueHD
+          - dcf3ec6938fa32445f590a4da84256cd # DTS-HD MA
+          - a570d4a0e56a2874b64e5bfa55202a1b # FLAC
+          - e7c2fcae07cbada050a0af3357491d7b # PCM
+        assign_scores_to:
+          - name: FR-MULTi-VO-UHD
+      # === Dolby Vision sans fallback (éviter) ===
+      - trash_ids:
+          - 923b6abef9b17f937fab56cfcf89e1f1 # DV (w/o HDR fallback)
+        assign_scores_to:
+          - name: FR-MULTi-VO-UHD
+      # === SDR bloqué ===
+      - trash_ids:
+          - 9c38ebb7384dada637be8899efa68e6f # SDR
+        assign_scores_to:
+          - name: FR-MULTi-VO-UHD
+      # === Movie Versions ===
+      - trash_ids:
+          - eecf3a857724171f968a66cb5719e152 # IMAX
+          - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
+        assign_scores_to:
+          - name: FR-MULTi-VO-UHD
+      # === Qualité (éviter les mauvaises releases) ===
+      - trash_ids:
+          - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
+          - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
+          - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
+          - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
+        assign_scores_to:
+          - name: FR-MULTi-VO-UHD
+      # === Versions françaises ===
+      - trash_ids:
+          - 404c08fd0bd67f39b4d8e5709319094e # VFF
+        assign_scores_to:
+          - name: FR-MULTi-VO-UHD
+            score: 101
+      - trash_ids:
+          - 4cafa20d5584f6ba1871d1b8941aa3cb # VOF
+          - 52772f1cad6b5d26c2551f79bc538a50 # VFI
+          - 29b5f7b1a5f20f64228786c3ab1bdc7d # VF2
+          - b3fb499641d7b3c2006be1d9eb014cb3 # VFB
+        assign_scores_to:
+          - name: FR-MULTi-VO-UHD
+            score: 50
+      - trash_ids:
+          - b6ace47331a1d3b77942fc18156f6df6 # VFQ
+          - f7caa1942be5cc547c266bd3dbc2cda9 # VOQ
+          - 95aa50f71a01c82354a7a2b385f1c4d8 # VQ
+        assign_scores_to:
+          - name: FR-MULTi-VO-UHD
+            score: -50

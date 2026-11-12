@@ -185,6 +185,20 @@ run_directory = "stacks/lidarr"
 ##
 
 [[stack]]
+name        = "mediarr"
+description = "Services de gestion des médias"
+tags        = ["stack"]
+[[stack.config]]
+swarm = "Prod Swarm"
+linked_repo = "docker"
+run_directory = "mediarr"
+config_files = [
+    { path = "mediarr.env", requires = "Redeploy" },
+    { path = "cinesync.env", requires = "Redeploy" },
+]
+
+##
+[[stack]]
 name        = "ntfy"
 description = "Service de notification"
 tags        = ["stack"]

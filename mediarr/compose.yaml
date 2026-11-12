@@ -1,0 +1,250 @@
+x-env_file: &env ./mediarr.env
+x-networks: &net [mediarr-net, mediarr-db, traefik-lan]
+x-lan: &lan {traefik.enable: 'true', traefik.swarm.network: traefik-lan}
+x-wan: &wan {traefik.enable: 'true', traefik.swarm.network: traefik-wan}
+
+x-deploy: &deploy
+    placement: {constraints: [node.labels.tier == media]}
+    update_config: {order: stop-first, failure_action: rollback}
+    restart_policy: {delay: 10s}
+    resources: {limits: {memory: 512M}}
+
+x-healthcheck: &healthcheck
+    interval: 30s
+    timeout: 10s
+    start_period: 30s
+    retries: 3
+
+x-radarr: &radarr
+    RADARR__POSTGRES__HOST: mediarr-db
+    RADARR__POSTGRES__USER: radarr
+    FILE__RADARR__POSTGRES__PASSWORD: /run/secrets/radarr_db_password
+
+x-sonarr: &sonarr
+    SONARR__POSTGRES__HOST: mediarr-db
+    SONARR__POSTGRES__USER: sonarr
+    FILE__SONARR__POSTGRES__PASSWORD: /run/secrets/sonarr_db_password
+
+services:
+    mediarr-db:
+        image: postgres:18.6-trixie@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
+        environment: [POSTGRES_PASSWORD_FILE=/run/secrets/mediarr_postgres_password]
+        configs: [{source: mediarr_init_db, target: /docker-entrypoint-initdb.d/init-db.sh}]
+        volumes: ['mediarr_db:/var/lib/postgresql']
+        networks: [mediarr-db]
+        secrets:
+        - mediarr_postgres_password
+        - seerr_db_password
+        - prowlarr_db_password
+        - sonarr_db_password
+        - radarr_db_password
+        - bazarr_db_password
+        deploy:
+            !!merge <<: *deploy
+            placement: {constraints: [node.labels.tier == database]}
+        healthcheck: {!!merge <<: *healthcheck, test: ['CMD-SHELL', 'pg_isready -U postgres']}
+
+    prowlarr:
+        image: lscr.io/linuxserver/prowlarr:2.6.5.5623-ls162@sha256:f2b26429893d4c4cb71941b7ee50b1bdecd9d5f9f9e02d5410615e9f4f7c8d95
+        env_file: *env
+        environment:
+        - PROWLARR__POSTGRES__HOST=mediarr-db
+        - PROWLARR__POSTGRES__USER=prowlarr
+        - PROWLARR__POSTGRES__MAINDB=prowlarr-main
+        - PROWLARR__POSTGRES__LOGDB=prowlarr-log
+        - FILE__PROWLARR__POSTGRES__PASSWORD=/run/secrets/prowlarr_db_password
+        secrets: [prowlarr_db_password]
+        volumes: ['prowlarr_config:/config']
+        networks: *net
+        deploy:
+            !!merge <<: *deploy
+            labels:
+                !!merge <<: *lan
+                traefik.http.routers.prowlarr.rule: Host(`prowlarr.macopla.com`)
+                traefik.http.routers.prowlarr.middlewares: lan-sso@file
+                traefik.http.services.prowlarr.loadbalancer.server.port: 9696
+        healthcheck: {!!merge <<: *healthcheck, test: 'curl -f http://127.0.0.1:9696/ping || exit 1'}
+
+    seerr:
+        image: ghcr.io/seerr-team/seerr:v3.5.0@sha256:27602401178d54f1964442287b9f23f67a3fa2252645ee8065839ea1c3f69e45
+        entrypoint: [/file-env.sh, docker-entrypoint.sh]
+        command: [npm, start]
+        init: true
+        env_file: *env
+        environment:
+        - DB_TYPE=postgres
+        - DB_HOST=mediarr-db
+        - DB_NAME=seerr
+        - DB_USER=seerr
+        - DB_PASS_FILE=/run/secrets/seerr_db_password
+        configs: [{source: file_env, target: /file-env.sh, mode: 0555}]
+        volumes: ['seerr_config:/app/config']
+        secrets: [seerr_db_password]
+        networks: [mediarr-net, mediarr-db, traefik-wan]
+        cap_drop: [ALL]
+        deploy:
+            !!merge <<: *deploy
+            labels:
+                !!merge <<: *wan
+                traefik.http.routers.jellyseerr.rule: Host(`jellyseerr.macopla.com`)
+                traefik.http.services.jellyseerr.loadbalancer.server.port: 5055
+        healthcheck: {!!merge <<: *healthcheck, test: 'wget --no-verbose --tries=1 --spider http://127.0.0.1:5055/api/v1/status || exit 1'}
+
+    cinesync:
+        image: sureshfizzy/cinesync:v3.2.2-alpha@sha256:36a27b1403e81cb7536e91f7991e2259c136037d0b5bcf0d1688783929b02708
+        env_file: [*env, ./cinesync.env]
+        ulimits: {nofile: 65536}
+        volumes:
+        - cinesync_db:/app/db
+        - /mnt/UNIFIED:/mnt/UNIFIED:ro,rslave
+        - /mnt/SYMLINKS:/mnt/SYMLINKS
+        networks: [mediarr-net, traefik-lan]
+        deploy:
+            !!merge <<: *deploy
+            labels:
+                !!merge <<: *lan
+                traefik.http.routers.cinesync.rule: Host(`cinesync.macopla.com`)
+                traefik.http.routers.cinesync.middlewares: lan-sso@file
+                traefik.http.services.cinesync.loadbalancer.server.port: 8082
+        healthcheck: {!!merge <<: *healthcheck, test: ['CMD-SHELL', 'curl -f http://127.0.0.1:8082/status'], start_period: 120s, retries: 6}
+
+    radarrhd:
+        image: lscr.io/linuxserver/radarr:6.4.4.10685-ls318@sha256:adb6c09d6b729ea5e642c99cea35af72702ef476bf4763f153299ac5db9f0b4f
+        env_file: *env
+        environment:
+            !!merge <<: *radarr
+            RADARR__POSTGRES__MAINDB: radarrhd-main
+            RADARR__POSTGRES__LOGDB: radarrhd-log
+        volumes: ['radarrhd_config:/config', '/mnt/jellyfin:/mnt/jellyfin']
+        secrets: [radarr_db_password]
+        networks: *net
+        deploy:
+            !!merge <<: *deploy
+            labels:
+                !!merge <<: *lan
+                traefik.http.routers.radarrhd.rule: Host(`radarrhd.macopla.com`)
+                traefik.http.routers.radarrhd.middlewares: lan-sso@file
+                traefik.http.services.radarrhd.loadbalancer.server.port: 7878
+        healthcheck: {!!merge <<: *healthcheck, test: 'curl -f http://127.0.0.1:7878/ping || exit 1'}
+
+    radarr4k:
+        image: lscr.io/linuxserver/radarr:6.4.4.10685-ls318@sha256:adb6c09d6b729ea5e642c99cea35af72702ef476bf4763f153299ac5db9f0b4f
+        env_file: *env
+        environment:
+            !!merge <<: *radarr
+            RADARR__POSTGRES__MAINDB: radarr4k-main
+            RADARR__POSTGRES__LOGDB: radarr4k-log
+        volumes: ['radarr4k_config:/config', '/mnt/jellyfin:/mnt/jellyfin']
+        secrets: [radarr_db_password]
+        networks: *net
+        deploy:
+            !!merge <<: *deploy
+            labels:
+                !!merge <<: *lan
+                traefik.http.routers.radarr4k.rule: Host(`radarr4k.macopla.com`)
+                traefik.http.routers.radarr4k.middlewares: lan-sso@file
+                traefik.http.services.radarr4k.loadbalancer.server.port: 7879
+        healthcheck: {!!merge <<: *healthcheck, test: 'curl -f http://127.0.0.1:7879/ping || exit 1'}
+
+    sonarrhd:
+        image: lscr.io/linuxserver/sonarr:4.0.20.3014-ls326@sha256:f247545d23ba8b233d6604575347e48a623fe6ad75dda02348bf81917f3b5c06
+        env_file: *env
+        environment:
+            !!merge <<: *sonarr
+            SONARR__POSTGRES__MAINDB: sonarrhd-main
+            SONARR__POSTGRES__LOGDB: sonarrhd-log
+        volumes: ['sonarrhd_config:/config', '/mnt/jellyfin:/mnt/jellyfin']
+        secrets: [sonarr_db_password]
+        networks: *net
+        deploy:
+            !!merge <<: *deploy
+            labels:
+                !!merge <<: *lan
+                traefik.http.routers.sonarrhd.rule: Host(`sonarrhd.macopla.com`)
+                traefik.http.routers.sonarrhd.middlewares: lan-sso@file
+                traefik.http.services.sonarrhd.loadbalancer.server.port: 8989
+        healthcheck: {!!merge <<: *healthcheck, test: 'curl -f http://127.0.0.1:8989/ping || exit 1'}
+
+    sonarr4k:
+        image: lscr.io/linuxserver/sonarr:4.0.20.3014-ls326@sha256:f247545d23ba8b233d6604575347e48a623fe6ad75dda02348bf81917f3b5c06
+        env_file: *env
+        environment:
+            !!merge <<: *sonarr
+            SONARR__POSTGRES__MAINDB: sonarr4k-main
+            SONARR__POSTGRES__LOGDB: sonarr4k-log
+        volumes: ['sonarr4k_config:/config', '/mnt/jellyfin:/mnt/jellyfin']
+        secrets: [sonarr_db_password]
+        networks: *net
+        deploy:
+            !!merge <<: *deploy
+            labels:
+                traefik.http.routers.sonarr4k.rule: Host(`sonarr4k.macopla.com`)
+                traefik.http.routers.sonarr4k.middlewares: authentik-proxy@swarm,local-only@file
+                traefik.http.services.sonarr4k.loadbalancer.server.port: 8990
+        healthcheck: {!!merge <<: *healthcheck, test: 'curl -f http://127.0.0.1:8990/ping || exit 1'}
+
+    bazarr:
+        image: linuxserver/bazarr:v1.5.6-ls342@sha256:9a631194c0dee21c85b5bff59e23610e1ae2f54594e922973949d271102e585e
+        env_file: *env
+        environment:
+        - POSTGRES_ENABLED=true
+        - POSTGRES_HOST=mediarr-db
+        - POSTGRES_DATABASE=bazarr
+        - POSTGRES_USERNAME=bazarr
+        - FILE__POSTGRES_PASSWORD=/run/secrets/bazarr_db_password
+        volumes: ['bazarr_config:/config', '/mnt/jellyfin:/mnt/jellyfin']
+        secrets: [bazarr_db_password]
+        networks: *net
+        deploy:
+            !!merge <<: *deploy
+            labels:
+                !!merge <<: *lan
+                traefik.http.routers.bazarr.rule: Host(`bazarr.macopla.com`)
+                traefik.http.routers.bazarr.middlewares: lan-sso@file
+                traefik.http.services.bazarr.loadbalancer.server.port: 6767
+        healthcheck: {!!merge <<: *healthcheck, test: ['CMD-SHELL', 'curl -f http://127.0.0.1:6767/ping']}
+
+    recyclarr:
+        image: ghcr.io/recyclarr/recyclarr:8.7.2@sha256:6e69e009e1cd7493ff6093e8e187b5d3788c75b4a2c0c5127b6a1beda1c19728
+        user: '1000:1000'
+        env_file: *env
+        environment: [CRON_SCHEDULE=@daily]
+        volumes: ['recyclarr_config:/config']
+        configs: [{source: recyclarr, target: /config/recyclarr.yml}]
+        secrets: [{source: recyclarr_secrets, target: /config/secrets.yml}]
+        networks: [mediarr-net]
+        deploy:
+            !!merge <<: *deploy
+            resources: {limits: {memory: 128M}}
+
+volumes:
+    seerr_config: {driver_opts: {type: none, o: bind, device: /data/seerr}}
+    prowlarr_config: {driver_opts: {type: none, o: bind, device: /data/prowlarr}}
+    radarrhd_config: {driver_opts: {type: none, o: bind, device: /data/radarrhd}}
+    radarr4k_config: {driver_opts: {type: none, o: bind, device: /data/radarr4k}}
+    sonarrhd_config: {driver_opts: {type: none, o: bind, device: /data/sonarrhd}}
+    sonarr4k_config: {driver_opts: {type: none, o: bind, device: /data/sonarr4k}}
+    bazarr_config: {driver_opts: {type: none, o: bind, device: /data/bazarr}}
+    recyclarr_config: {driver_opts: {type: none, o: bind, device: /data/recyclarr}}
+    cinesync_db: {driver_opts: {type: none, o: bind, device: /data/cinesync/db}}
+    mediarr_db: {driver_opts: {type: none, o: bind, device: /data/mediarr/db}}
+
+configs:
+    file_env: {name: mediarr_file_env_v1, file: ../_shared/file-env.sh}
+    mediarr_init_db: {name: mediarr_init_db_v1, file: ./init-db.sh}
+    recyclarr: {name: mediarr_recyclarr_v1, file: ./recyclarr.yml}
+
+secrets:
+    mediarr_postgres_password: {external: true}
+    seerr_db_password: {external: true}
+    prowlarr_db_password: {external: true}
+    bazarr_db_password: {external: true}
+    radarr_db_password: {external: true}
+    sonarr_db_password: {external: true}
+    recyclarr_secrets: {external: true}
+
+networks:
+    mediarr-net: {driver: overlay}
+    mediarr-db: {driver: overlay}
+    traefik-lan: {external: true}
+    traefik-wan: {external: true}
