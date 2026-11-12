@@ -178,6 +178,7 @@ services:
         deploy:
             !!merge <<: *deploy
             labels:
+                !!merge <<: *lan
                 traefik.http.routers.sonarr4k.rule: Host(`sonarr4k.macopla.com`)
                 traefik.http.routers.sonarr4k.middlewares: lan-sso@file
                 traefik.http.services.sonarr4k.loadbalancer.server.port: 8990
