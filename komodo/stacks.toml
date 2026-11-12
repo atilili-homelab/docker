@@ -23,30 +23,8 @@ linked_repo   = "homelab"
 run_directory = "stacks/authentik"
 
 ##
-
 [[stack]]
-name        = "bazarr"
-description = "Service de sous-titres pour les films et séries"
-tags        = ["stack"]
-[stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
-run_directory = "stacks/bazarr"
 
-##
-
-[[stack]]
-name        = "bookshelf"
-description = "Service de gestion de bibliothèque e-book"
-tags        = ["stack"]
-[stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
-run_directory = "stacks/bookshelf"
-
-##
-
-[[stack]]
 name        = "bookstack"
 description = "Service de gestion de documentation(wiki)"
 tags        = ["stack"]
@@ -54,17 +32,6 @@ tags        = ["stack"]
 swarm         = "Prod Swarm"
 linked_repo   = "homelab"
 run_directory = "stacks/bookstack"
-
-##
-
-[[stack]]
-name        = "cinesync"
-description = "Service d'organisation de films et séries(symlink/rename)"
-tags        = ["stack"]
-[stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
-run_directory = "stacks/cinesync"
 
 ##
 
@@ -148,17 +115,6 @@ run_directory = "stacks/jellyfin"
 ##
 
 [[stack]]
-name        = "jellyseerr"
-description = "Service de requêtes de films et séries"
-tags        = ["stack"]
-[stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
-run_directory = "stacks/jellyseerr"
-
-##
-
-[[stack]]
 name        = "komodo"
 description = "Service d'orchestration des conteneurs"
 tags        = ["stack"]
@@ -170,17 +126,6 @@ config_files = [
     # prettier-ignore
     { path = "core.env", requires = "Redeploy" },
 ]
-
-##
-
-[[stack]]
-name        = "lidarr"
-description = "Service de gestion de musique"
-tags        = ["stack"]
-[stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
-run_directory = "stacks/lidarr"
 
 ##
 
@@ -228,44 +173,6 @@ run_directory = "stacks/prometheus"
 ##
 
 [[stack]]
-name        = "prowlarr"
-description = "Service de gestion de indexeurs de films et séries"
-tags        = ["stack"]
-[stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
-run_directory = "stacks/prowlarr"
-
-##
-
-[[stack]]
-name        = "radarr"
-description = "Service de gestion de films"
-tags        = ["stack"]
-[stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
-run_directory = "stacks/radarr"
-
-##
-
-[[stack]]
-name        = "recyclarr"
-description = "Service profil qualité films et séries"
-tags        = ["stack"]
-[stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
-run_directory = "stacks/recyclarr"
-pre_deploy.command = """
-cp /data/gluster/recyclarr/recyclarr.yml /data/gluster/recyclarr/recyclarr.yml.bak
-cp recyclarr.yml /data/gluster/recyclarr/recyclarr.yml
-"""
-pre_deploy.shell_mode = false
-
-##
-
-[[stack]]
 name        = "seedbox"
 description = "Service de gestion de seedbox"
 tags        = ["stack"]
@@ -293,17 +200,6 @@ registry_account = "atilil"
 environment = """
 SEMAPHORE_OIDC_SECRET=[[semaphore_oidc_secret]]
 """
-
-##
-
-[[stack]]
-name        = "sonarr"
-description = "Service de gestion de séries"
-tags        = ["stack"]
-[stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
-run_directory = "stacks/sonarr"
 
 ##
 
