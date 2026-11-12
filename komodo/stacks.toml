@@ -29,9 +29,13 @@ name        = "bookstack"
 description = "Service de gestion de documentation(wiki)"
 tags        = ["stack"]
 [stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
-run_directory = "stacks/bookstack"
+swarm = "Prod Swarm"
+linked_repo = "docker"
+run_directory = "bookstack"
+config_files = [
+    # prettier-ignore
+    { path = "bookstack.env", requires = "Redeploy" },
+]
 
 ##
 

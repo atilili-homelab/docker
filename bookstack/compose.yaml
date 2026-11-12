@@ -1,0 +1,56 @@
+x-deploy: &deploy
+    update_config: {order: stop-first, failure_action: rollback}
+    restart_policy: {delay: 10s}
+
+x-healthcheck: &healthcheck
+    interval: 30s
+    timeout: 5s
+    retries: 5
+    start_period: 30s
+
+services:
+    bookstack:
+        image: lscr.io/linuxserver/bookstack:26.09.20260929@sha256:7a6779d345d4d678614aa1a0a8a4d8456aeb98de10dfae700b839c3140c89f39
+        env_file: ./bookstack.env
+        volumes: ['bookstack_config:/config']
+        secrets: [bookstack_app_key, bookstack_db_password, bookstack_oidc_client_secret]
+        networks: [traefik-wan, bookstack-db-net]
+        deploy:
+            !!merge <<: *deploy
+            labels:
+                traefik.enable: 'true'
+                traefik.swarm.network: traefik-wan
+                traefik.http.routers.bookstack.rule: Host(`wiki.macopla.com`)
+                traefik.http.services.bookstack.loadbalancer.server.port: 80
+            placement: {constraints: [node.labels.tier == apps]}
+            resources: {limits: {memory: 256M}}
+        healthcheck: {!!merge <<: *healthcheck, test: [CMD-SHELL, 'curl -f http://127.0.0.1:80/status']}
+
+    bookstack-db:
+        image: mariadb:13.0@sha256:f1bba652ba57bea3099ca2fe1af692af537c27d96e0bcde39dce29e2ba1ec4f3
+        environment:
+            MARIADB_USER: bookstack
+            MARIADB_DATABASE: bookstack
+            MARIADB_PASSWORD_FILE: /run/secrets/bookstack_db_password
+            MARIADB_RANDOM_ROOT_PASSWORD: 'yes'
+        volumes: ['bookstack_db:/var/lib/mysql']
+        secrets: [bookstack_db_password]
+        networks: [bookstack-db-net]
+        deploy:
+            !!merge <<: *deploy
+            placement: {constraints: [node.labels.tier == database]}
+            resources: {limits: {memory: 520M}}
+        healthcheck: {!!merge <<: *healthcheck, test: [CMD, healthcheck.sh, --connect, --innodb_initialized]}
+
+volumes:
+    bookstack_config: {driver_opts: {type: none, o: bind, device: /data/bookstack}}
+    bookstack_db: {driver_opts: {type: none, o: bind, device: /data/bookstack/db}}
+
+secrets:
+    bookstack_db_password: {external: true}
+    bookstack_app_key: {external: true}
+    bookstack_oidc_client_secret: {external: true}
+
+networks:
+    traefik-wan: {external: true}
+    bookstack-db-net: {driver: overlay}
