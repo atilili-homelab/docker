@@ -179,7 +179,7 @@ services:
             !!merge <<: *deploy
             labels:
                 traefik.http.routers.sonarr4k.rule: Host(`sonarr4k.macopla.com`)
-                traefik.http.routers.sonarr4k.middlewares: authentik-proxy@swarm,local-only@file
+                traefik.http.routers.sonarr4k.middlewares: lan-sso@file
                 traefik.http.services.sonarr4k.loadbalancer.server.port: 8990
         healthcheck: {!!merge <<: *healthcheck, test: 'curl -f http://127.0.0.1:8990/ping || exit 1'}
 
