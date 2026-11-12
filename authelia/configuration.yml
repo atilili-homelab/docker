@@ -72,11 +72,41 @@ identity_providers:
         rules:
           - policy: two_factor
             subject: "group:admins"
+      famille:
+        default_policy: deny
+        rules:
+          - policy: two_factor
+            subject: "group:famille"
     jwks:
       - key_id: main
         # prettier-ignore
         key: {{secret "/run/secrets/authelia_oidc_jwks_key" | mindent 10 "|" | msquote}}
     clients:
+      # BOOKSTACK
+      - client_id: bookstack
+        client_name: Bookstack
+        client_secret: "$pbkdf2-sha512$310000$URwYQaGFEHT/tcti0IYbnw$Xi.2uVTajZoqYJswNkigiury25rkNIheAXqd5ui.PbQfmybmzu4xfgiS5XmZZfiErrqlPVNaeVZ90evcdzhhHA"
+        authorization_policy: "famille"
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          - https://wiki.macopla.com/oidc/callback
+
+      # FORGEJO
+      - client_id: forgejo
+        client_name: Forgejo
+        client_secret: "$pbkdf2-sha512$310000$Ze1/C2GjijY2jja6LoVIow$WVmtPbFVvbrSpP58Tf2v3XmRkAi247NtI8aJn9nKYJjBtkAOVn7jiTXPm.6.J.R/bNK5eJmomNrJLQG9nLMM1w"
+        authorization_policy: "admins"
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          - https://forge.macopla.com/user/oauth2/authelia/callback
+        scopes:
+          - openid
+          - profile
+          - email
+
+      # KOMODO
       - client_id: komodo
         client_name: Komodo
         client_secret: "$pbkdf2-sha512$310000$PJCVtk8xLKyREjB1tEytLA$MwowVdpooyD.LPcWodAvwO5OjdsAHi9w1Z2xE9BbohRGiqlFfya42eu2UDYJ4BMlv1GIJ4F4ExyrzTGo64C5xw"
@@ -85,20 +115,6 @@ identity_providers:
         pkce_challenge_method: S256
         redirect_uris:
           - https://komodo.macopla.com/auth/oidc/callback
-        scopes:
-          - openid
-          - profile
-          - email
-
-      - client_id: forgejo
-        client_name: Forgejo
-        client_secret: "$pbkdf2-sha512$310000$Ze1/C2GjijY2jja6LoVIow$WVmtPbFVvbrSpP58Tf2v3XmRkAi247NtI8aJn9nKYJjBtkAOVn7jiTXPm.6.J.R/bNK5eJmomNrJLQG9nLMM1w"
-        authorization_policy: "admins"
-        require_pkce: true
-        pkce_challenge_method: S256
-        token_endpoint_auth_method: client_secret_basic
-        redirect_uris:
-          - https://forge.macopla.com/user/oauth2/authelia/callback
         scopes:
           - openid
           - profile
