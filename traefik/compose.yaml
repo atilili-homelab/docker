@@ -15,7 +15,7 @@ services:
         volumes: ['/var/run/docker.sock:/var/run/docker.sock:ro']
         env_file: [./socket-proxy.env]
         environment: [TZ=Europe/Paris]
-        networks: [socket-proxy]
+        networks: [traefik-proxy]
         healthcheck:
             !!merge <<: *healthcheck
             test: wget --no-verbose --tries=1 --spider http://127.0.0.1:2375/version || exit 1
@@ -27,16 +27,16 @@ services:
     traefik:
         image: traefik:v3.7@sha256:c1ea95f3b3eab04ba8868d201b8494e12284e424f7cec2127e3194bca1c6641c
         volumes: ['/data/gluster/traefik:/letsencrypt']
+        environment: ['TZ=Europe/Paris', CF_DNS_API_TOKEN_FILE=/run/secrets/traefik_cloudflare_api_token]
         configs:
         - {source: middlewares, target: /dynamic/middlewares.yml}
         - {source: external, target: /dynamic/external.yml}
         - {source: static, target: /etc/traefik/traefik.yml}
-        secrets: [traefik_cloudflare_api_token, traefik_crowdsec_lapi_key]
-        environment: ['TZ=Europe/Paris', CF_DNS_API_TOKEN_FILE=/run/secrets/traefik_cloudflare_api_token]
+        secrets: [traefik_cloudflare_api_token, {source: crowdsec_bouncer_key_traefik, target: traefik_crowdsec_lapi_key}]
         ports:
         - {target: 80, published: 80, protocol: tcp, mode: host}
         - {target: 443, published: 443, protocol: tcp, mode: host}
-        networks: [socket-proxy, traefik-lan, traefik-wan, traefik-public, net-security]
+        networks: [traefik-proxy, traefik-lan, traefik-wan, traefik-public, crowdsec-bouncer]
         healthcheck: {!!merge <<: *healthcheck, test: traefik healthcheck --ping}
         deploy:
             !!merge <<: *deploy
@@ -46,9 +46,9 @@ services:
 networks:
     traefik-lan: {name: traefik-lan, driver: overlay}
     traefik-wan: {name: traefik-wan, driver: overlay}
+    traefik-proxy: {driver: overlay}
     traefik-public: {external: true}
-    net-security: {external: true}
-    socket-proxy: {external: true}
+    crowdsec-bouncer: {external: true}
 
 configs:
     middlewares: {name: traefik_middlewares_v3, file: ./middlewares.yml}
@@ -57,4 +57,4 @@ configs:
 
 secrets:
     traefik_cloudflare_api_token: {external: true}
-    traefik_crowdsec_lapi_key: {external: true}
+    crowdsec_bouncer_key_traefik: {external: true}
