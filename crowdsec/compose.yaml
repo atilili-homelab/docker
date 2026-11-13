@@ -39,7 +39,7 @@ services:
                 LePresidente/authelia
             CROWDSEC_BYPASS_DB_VOLUME_CHECK: 'true'
             DB_PASSWORD_FILE: /run/secrets/crowdsec_db_password
-        volumes: ['crowdsec_config:/etc/crowdsec', 'crowdsec_data:/var/lib/crowdsec/data']
+        volumes: ['config:/etc/crowdsec', 'data:/var/lib/crowdsec/data']
         configs:
         - {source: file_env, target: /file-env.sh, mode: 0555}
         - {source: config_local, target: /etc/crowdsec/config.yaml.local}
@@ -75,8 +75,8 @@ services:
         healthcheck: {!!merge <<: *healthcheck, test: ['CMD-SHELL', 'pg_isready -U crowdsec']}
 
 volumes:
-    crowdsec_config: {driver_opts: {type: none, o: bind, device: /data/crowdsec}}
-    crowdsec_data: {driver_opts: {type: none, o: bind, device: /data/crowdsec/data}}
+    config: {driver_opts: {type: none, o: bind, device: /data/crowdsec}}
+    data: {driver_opts: {type: none, o: bind, device: /data/crowdsec/data}}
     crowdsec_db: {driver_opts: {type: none, o: bind, device: /data/crowdsec/db}}
 
 configs:
