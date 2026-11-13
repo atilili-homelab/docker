@@ -86,17 +86,6 @@ config_files  = [{ path = "config.yaml", requires = "Redeploy" }]
 ##
 
 [[stack]]
-name        = "homarr"
-description = "Service de dashboard pour les services du homelab"
-tags        = ["stack"]
-[stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
-run_directory = "stacks/homarr"
-
-##
-
-[[stack]]
 name        = "immich"
 description = "Service de gestion de photos"
 tags        = ["stack"]
