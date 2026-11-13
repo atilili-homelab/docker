@@ -83,7 +83,7 @@ configs:
     file_env: {name: crowdsec_file_env_v1, file: ../_shared/file-env.sh}
     config_local: {name: crowdsec_config_local_v1, file: ./config.yaml.local}
     acquis: {name: crowdsec_acquis_v1, file: ./acquis.yaml}
-    appsec: {name: crowdsec_appsec_v1, file: ./appsec.yaml}
+    appsec: {name: crowdsec_appsec_v2, file: ./appsec.yaml}
     profiles: {name: crowdsec_profiles_v1, file: ./profiles.yaml}
     notification_http: {name: crowdsec_notification_http_v1, file: ./notification-http.yaml}
     console: {name: crowdsec_console_v1, file: ./console.yaml}
