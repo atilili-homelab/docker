@@ -22,7 +22,7 @@ services:
             EVENTS: 0
             POST: 0
         read_only: true
-        networks: [traefic-proxy]
+        networks: [traefik-proxy]
         healthcheck:
             !!merge <<: *healthcheck
             test: wget --no-verbose --tries=1 --spider http://127.0.0.1:2375/version || exit 1
