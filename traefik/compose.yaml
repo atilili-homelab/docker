@@ -26,7 +26,7 @@ services:
 
     traefik:
         image: traefik:v3.7@sha256:c1ea95f3b3eab04ba8868d201b8494e12284e424f7cec2127e3194bca1c6641c
-        volumes: ['/data/gluster/traefik:/letsencrypt']
+        volumes: ['letsencrypt:/letsencrypt']
         environment: ['TZ=Europe/Paris', CF_DNS_API_TOKEN_FILE=/run/secrets/traefik_cloudflare_api_token]
         configs:
         - {source: middlewares, target: /dynamic/middlewares.yml}
@@ -42,6 +42,9 @@ services:
             !!merge <<: *deploy
             resources: {limits: {memory: 256M}}
             placement: {constraints: [node.labels.traefik == true]}
+
+volumes:
+    letsencrypt: {}
 
 networks:
     traefik-lan: {name: traefik-lan, driver: overlay}
