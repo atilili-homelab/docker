@@ -10,6 +10,7 @@ services:
         volumes: ['/var/run/docker.sock:/var/run/docker.sock:ro', {type: tmpfs, target: /run}]
         environment:
             TZ: Europe/Paris
+            CONTAINERS: 1
             SERVICES: 1
             EVENTS: 1
             INFO: 1
