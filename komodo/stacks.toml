@@ -56,8 +56,8 @@ description = "Service de détection d'intrusion"
 tags        = ["stack"]
 [stack.config]
 swarm         = "Prod Swarm"
-linked_repo   = "homelab"
-run_directory = "stacks/crowdsec"
+linked_repo   = "docker"
+run_directory = "crowdsec"
 
 ##
 

@@ -1,0 +1,15 @@
+type: http
+name: http_default
+format: |
+  {
+    "title": "CrowdSec - Ban",
+    "body": "{{range . -}}
+    🚫 {{.Scenario}} | {{.Source.IP}}{{if .Source.Cn}} ({{.Source.Cn -}}
+    ){{end}} | {{.Source.AsName}} | {{(index .Decisions 0).Duration}}\n{{end -}}"
+  }
+url: https://apprise.macopla.com/notify/apprise?tag=security
+method: POST
+headers:
+  Content-Type: "application/json"
+group_wait: 10s
+group_threshold: 5

@@ -1,0 +1,98 @@
+x-deploy: &deploy
+    update_config: {failure_action: rollback, order: stop-first}
+    restart_policy: {delay: 10s}
+
+x-healthcheck: &healthcheck {interval: 30s, timeout: 5s, retries: 3, start_period: 30s}
+
+services:
+    socket-proxy:
+        image: lscr.io/linuxserver/socket-proxy:3.4.7-r0-ls105
+        volumes: ['/var/run/docker.sock:/var/run/docker.sock:ro', {type: tmpfs, target: /run}]
+        environment:
+            TZ: Europe/Paris
+            SERVICES: 1
+            EVENTS: 1
+            INFO: 1
+            POST: 0
+        read_only: true
+        networks: [crowdsec-proxy]
+        healthcheck:
+            !!merge <<: *healthcheck
+            test: wget --no-verbose --tries=1 --spider http://127.0.0.1:2375/version || exit 1
+        deploy:
+            !!merge <<: *deploy
+            mode: global
+            resources: {limits: {memory: 32M}}
+            placement: {constraints: [node.role == manager]}
+
+    crowdsec:
+        image: crowdsecurity/crowdsec:v1.8.1@sha256:0f2523fa61ef507f15d953045cface490cc880670c62f2755ced17524107f71a
+        entrypoint: [/file-env.sh, /bin/bash, /docker_start.sh]
+        environment:
+            TZ: Europe/Paris
+            DOCKER_HOST: tcp://socket-proxy:2375
+            COLLECTIONS: >-
+                crowdsecurity/traefik
+                crowdsecurity/linux
+                crowdsecurity/appsec-virtual-patching
+                crowdsecurity/appsec-generic-rules
+                LePresidente/authelia
+            CROWDSEC_BYPASS_DB_VOLUME_CHECK: 'true'
+            DB_PASSWORD_FILE: /run/secrets/crowdsec_db_password
+        volumes: ['crowdsec_config:/etc/crowdsec', 'crowdsec_data:/var/lib/crowdsec/data']
+        configs:
+        - {source: file_env, target: /file-env.sh, mode: 0555}
+        - {source: config_local, target: /etc/crowdsec/config.yaml.local}
+        - {source: acquis, target: /etc/crowdsec/acquis.yaml}
+        - {source: appsec, target: /etc/crowdsec/acquis.d/appsec.yaml}
+        - {source: profiles, target: /etc/crowdsec/profiles.yaml}
+        - {source: notification_http, target: /etc/crowdsec/notifications/http.yaml}
+        - {source: console, target: /etc/crowdsec/console.yaml}
+        secrets: [crowdsec_db_password, {source: crowdsec_bouncer_key_traefik, target: bouncer_key_traefik}]
+        networks: [crowdsec-net, crowdsec-proxy, crowdsec-bouncer]
+        deploy:
+            !!merge <<: *deploy
+            placement: {constraints: [node.labels.tier == infra]}
+            resources: {limits: {memory: 320M}}
+        healthcheck:
+            !!merge <<: *healthcheck
+            test: ['CMD', 'cscli', 'lapi', 'status']
+
+    crowdsec-db:
+        image: postgres:18.7-trixie@sha256:9f4fd4aa918f52ae3d6f3b687f1de90d8f867cd4d520021545a9a50c120eae3b
+        command: [postgres, -c, 'timezone=Europe/Paris', -c, 'log_timezone=Europe/Paris']
+        environment:
+            POSTGRES_USER: crowdsec
+            POSTGRES_DB: crowdsec
+            POSTGRES_PASSWORD_FILE: /run/secrets/crowdsec_db_password
+        volumes: ['crowdsec_db:/var/lib/postgresql']
+        secrets: [crowdsec_db_password]
+        networks: [crowdsec-net]
+        deploy:
+            !!merge <<: *deploy
+            placement: {constraints: [node.labels.tier == database]}
+            resources: {limits: {memory: 256M}}
+        healthcheck: {!!merge <<: *healthcheck, test: ['CMD-SHELL', 'pg_isready -U crowdsec']}
+
+volumes:
+    crowdsec_config: {driver_opts: {type: none, o: bind, device: /data/crowdsec}}
+    crowdsec_data: {driver_opts: {type: none, o: bind, device: /data/crowdsec/data}}
+    crowdsec_db: {driver_opts: {type: none, o: bind, device: /data/crowdsec/db}}
+
+configs:
+    file_env: {name: crowdsec_file_env_v1, file: ../_shared/file-env.sh}
+    config_local: {name: crowdsec_config_local_v1, file: ./config.yaml.local}
+    acquis: {name: crowdsec_acquis_v1, file: ./acquis.yaml}
+    appsec: {name: crowdsec_appsec_v1, file: ./appsec.yaml}
+    profiles: {name: crowdsec_profiles_v1, file: ./profiles.yaml}
+    notification_http: {name: crowdsec_notification_http_v1, file: ./notification-http.yaml}
+    console: {name: crowdsec_console_v1, file: ./console.yaml}
+
+secrets:
+    crowdsec_db_password: {external: true}
+    crowdsec_bouncer_key_traefik: {external: true}
+
+networks:
+    crowdsec-net: {driver: overlay}
+    crowdsec-proxy: {driver: overlay}
+    crowdsec-bouncer: {name: crowdsec-bouncer, driver: overlay}

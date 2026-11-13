@@ -1,0 +1,14 @@
+source: docker
+docker_host: tcp://socket-proxy:2375
+service_name_regexp:
+  - "^traefik_traefik$"
+labels:
+  type: traefik
+
+---
+source: docker
+docker_host: tcp://socket-proxy:2375
+service_name_regexp:
+  - "^authelia_authelia$"
+labels:
+  type: authelia
