@@ -232,7 +232,6 @@ tags        = ["stack"]
 swarm         = "Prod Swarm"
 linked_repo   = "docker"
 run_directory = "traefik"
-config_files  = [{ path = "socket-proxy.env", requires = "Redeploy" }]
 
 ##
 

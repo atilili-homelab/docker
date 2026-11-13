@@ -11,11 +11,18 @@ x-healthcheck: &healthcheck
 
 services:
     socket-proxy:
-        image: ghcr.io/tecnativa/docker-socket-proxy:v0.5.0@sha256:1f5038b54f06c3e18422902cf00ba21803d1c97805aae032e5e6673d532d3459
-        volumes: ['/var/run/docker.sock:/var/run/docker.sock:ro']
-        env_file: [./socket-proxy.env]
-        environment: [TZ=Europe/Paris]
-        networks: [traefik-proxy]
+        image: lscr.io/linuxserver/socket-proxy:3.4.7-r0-ls105@sha256:823dda971e9a3951257eb251586a804199819fe1587c35faa43adc7b52a2ff16
+        volumes: ['/var/run/docker.sock:/var/run/docker.sock:ro', {type: tmpfs, target: /run}]
+        environment:
+            TZ: Europe/Paris
+            NETWORKS: 1
+            NODES: 1
+            SERVICES: 1
+            TASKS: 1
+            EVENTS: 0
+            POST: 0
+        read_only: true
+        networks: [traefic-proxy]
         healthcheck:
             !!merge <<: *healthcheck
             test: wget --no-verbose --tries=1 --spider http://127.0.0.1:2375/version || exit 1
