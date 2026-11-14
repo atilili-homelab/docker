@@ -1,0 +1,104 @@
+x-deploy: &deploy
+    update_config: {failure_action: rollback, order: stop-first}
+    restart_policy: {delay: 10s, window: 120s}
+    resources: {limits: {memory: 1024M}}
+
+x-healthcheck: &healthcheck
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 60s
+
+services:
+    immich-server:
+        image: ghcr.io/immich-app/immich-server:v3.3.4@sha256:f6475c58b07a8d89ec845aa8782731d36656c3c17d943e0a101dc6ed99a2e53f
+        environment:
+            TZ: Europe/Paris
+            DB_HOSTNAME: immich-db
+            DB_USERNAME: immich
+            DB_PASSWORD_FILE: /run/secrets/immich_db_password
+            DB_DATABASE_NAME: immich
+            REDIS_HOSTNAME: immich-redis
+            REDIS_PORT: 6379
+            REDIS_PASSWORD_FILE: /run/secrets/immich_redis_password
+            IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning:3003
+            IMMICH_HELMET_FILE: 'true'
+        secrets: [immich_db_password, immich_redis_password]
+        volumes: ['immich-upload:/usr/src/app/upload']
+        networks: [traefik-wan, immich-net]
+        cap_drop: [NET_RAW]
+        deploy:
+            !!merge <<: *deploy
+            placement: {constraints: [node.labels.tier == apps]}
+            labels:
+                traefik.enable: 'true'
+                traefik.swarm.network: traefik-wan
+                traefik.http.routers.immich.rule: Host(`photo.macopla.com`)
+                traefik.http.services.immich.loadbalancer.server.port: 2283
+        healthcheck:
+            !!merge <<: *healthcheck
+            test: ['CMD', 'immich-healthcheck']
+
+    immich-machine-learning:
+        image: ghcr.io/immich-app/immich-machine-learning:v3.3.4@sha256:1ab8674e7cec41009abb3812de62a16cc1917e73d486233a5471b048d26fc14d
+        environment:
+            TZ: Europe/Paris
+            TRANSFORMERS_CACHE: /cache
+            HUGGING_FACE_HUB_CACHE: /cache
+            MPLCONFIGDIR: /cache/matplotlib
+            MACHINE_LEARNING_MODEL_REVISION: v2
+        volumes: ['immich-ml-cache:/cache']
+        networks: [immich-net]
+        cap_drop: [NET_RAW]
+        deploy:
+            !!merge <<: *deploy
+            placement: {constraints: [node.labels.tier == apps]}
+
+    immich-redis:
+        image: docker.io/valkey/valkey:9@sha256:418652cfb58ef879d4978c33553735d7147016032d5aefaa14c828e611eb9dfd
+        command: /bin/sh -c "valkey-server --requirepass $$(cat /run/secrets/immich_redis_password)"
+        secrets: [immich_redis_password]
+        volumes: ['immich-redis_redis:/data']
+        networks: [immich-net]
+        user: '999:999'
+        cap_drop: [NET_RAW]
+        deploy:
+            !!merge <<: *deploy
+            placement: {constraints: [node.labels.tier == database]}
+            resources: {limits: {memory: 256M}}
+        healthcheck:
+            !!merge <<: *healthcheck
+            test: ['CMD-SHELL', 'valkey-cli -a "$$(cat /run/secrets/immich_redis_password)" --no-auth-warning ping | grep -q PONG']
+
+    immich-db:
+        image: ghcr.io/immich-app/postgres:18-vectorchord0.5.3@sha256:828081a755d3911a2d94f0a2be9f98570c07d52cf080fd310a9d6e4b83b73aa5
+        environment:
+            POSTGRES_USER: immich
+            POSTGRES_DB: immich
+            POSTGRES_PASSWORD_FILE: /run/secrets/immich_db_password
+            POSTGRES_INITDB_ARGS: --data-checksums
+        secrets: [immich_db_password]
+        volumes: ['immich_db:/var/lib/postgresql', {type: tmpfs, target: /dev/shm, tmpfs: {size: 134217728}}]
+        networks: [immich-net]
+        user: '999:999'
+        cap_drop: [NET_RAW]
+        deploy:
+            !!merge <<: *deploy
+            placement: {constraints: [node.labels.tier == database]}
+        healthcheck:
+            !!merge <<: *healthcheck
+            test: ['CMD-SHELL', 'pg_isready -U immich -d immich']
+
+secrets:
+    immich_db_password: {external: true}
+    immich_redis_password: {external: true}
+
+networks:
+    traefik-wan: {external: true}
+    immich-net: {driver: overlay}
+
+volumes:
+    immich-upload: {driver: local, driver_opts: {type: nfs, o: 'addr=nas.macopla.home,nfsvers=4', device: ':/mnt/tank/immich/data/upload'}}
+    immich-ml-cache: {driver: local}
+    immich-redis_redis: {driver_opts: {type: none, o: bind, device: /data/immich/redis}}
+    immich_db: {driver_opts: {type: none, o: bind, device: /data/immich/db}}

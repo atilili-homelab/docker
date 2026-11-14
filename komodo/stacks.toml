@@ -91,8 +91,8 @@ description = "Service de gestion de photos"
 tags        = ["stack"]
 [stack.config]
 swarm         = "Prod Swarm"
-linked_repo   = "homelab"
-run_directory = "stacks/immich"
+linked_repo   = "docker"
+run_directory = "immich"
 
 ##
 
