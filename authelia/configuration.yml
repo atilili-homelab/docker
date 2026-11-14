@@ -72,6 +72,11 @@ identity_providers:
         rules:
           - policy: two_factor
             subject: "group:admins"
+      family_only:
+        default_policy: deny
+        rules:
+          - policy: two_factor
+            subject: ["group:admins", "group:famille"]
       family_friends:
         default_policy: deny
         rules:
@@ -113,7 +118,7 @@ identity_providers:
       - client_id: immich
         client_name: Immich
         client_secret: "$pbkdf2-sha512$310000$iLjtT/kKbVgA74WhGyOGPA$vROnohRly7QhzRREel8TLsiURAruVapGJT0HgJgUfSre45uh2HDeHdzwlG6RSAkE2jqessUGXSXaFWPXpT65.g"
-        authorization_policy: "family_friends"
+        authorization_policy: "family_only"
         require_pkce: true
         pkce_challenge_method: S256
         redirect_uris:
