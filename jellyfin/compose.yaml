@@ -1,0 +1,29 @@
+services:
+    jellyfin:
+        image: jellyfin/jellyfin:12.1@sha256:78d3ea1207d1322471fcac39a614f004f2ccf7e878f95ab2977d752f07e4dd7e
+        container_name: jellyfin
+        restart: unless-stopped
+        user: 1000:1000
+        environment:
+            TZ: Europe/Paris
+            JELLYFIN_PublishedServerUrl: https://yoflix.macopla.com
+        group_add: ['992']
+        devices: ['/dev/dri:/dev/dri']
+        volumes:
+        - /data/local/jellyfin:/config
+        - jellyfin-cache:/cache
+        - /mnt/SYMLINKS:/mnt/SYMLINKS
+        - /mnt/jellyfin:/mnt/jellyfin
+        # rslave for mergerfs so that the mountpoint is not hidden untill the container is restarted
+        - {type: bind, source: /mnt/UNIFIED, target: /mnt/UNIFIED, read_only: true, bind: {propagation: rslave}}
+        ports: ['8096:8096']
+        healthcheck:
+            test: curl -f http://127.0.0.1:8096/health || exit 1
+            interval: 30s
+            timeout: 10s
+            start_period: 60s
+            retries: 3
+        mem_limit: 6G
+
+volumes:
+    jellyfin-cache: {driver: local}

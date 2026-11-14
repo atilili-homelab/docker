@@ -102,8 +102,8 @@ description = "Service de streaming de films et séries"
 tags        = ["stack"]
 [stack.config]
 server        = "link"
-linked_repo   = "homelab"
-run_directory = "stacks/jellyfin"
+linked_repo   = "docker"
+run_directory = "jellyfin"
 
 ##
 
