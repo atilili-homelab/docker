@@ -2,5 +2,14 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "local>homelab/renovate-config"
+  ],
+  "packageRules": [
+    {
+      "description": "Immich : server et ML toujours ensemble",
+      "matchPackageNames": [
+        "ghcr.io/immich-app/**"
+      ],
+      "groupName": "immich"
+    }
   ]
 }
