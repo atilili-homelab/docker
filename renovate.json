@@ -7,7 +7,7 @@
     {
       "description": "Immich : server et ML toujours ensemble",
       "matchPackageNames": [
-        "ghcr.io/immich-app/**"
+        "altran1502/immich-*"
       ],
       "groupName": "immich"
     }

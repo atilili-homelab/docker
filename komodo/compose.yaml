@@ -6,7 +6,7 @@ x-healthcheck: &healthcheck
 
 services:
     core:
-        image: ghcr.io/moghtech/komodo-core:2@sha256:91b2afd7b3bb2abea0ebd3046d65ec457eb1f3d505868d1d60cb0f8562490ef9
+        image: moghtech/komodo-core:2@sha256:91b2afd7b3bb2abea0ebd3046d65ec457eb1f3d505868d1d60cb0f8562490ef9
         env_file: [./core.env]
         environment: [TZ=Europe/Paris]
         secrets:

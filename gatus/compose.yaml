@@ -1,6 +1,6 @@
 services:
     gatus:
-        image: ghcr.io/twin/gatus:v5.37.0@sha256:094eb186e55235db367e90e9d56140e5897b7044c41de23cde4cc18e6da1242e
+        image: twinproduction/gatus:v5.37.0@sha256:094eb186e55235db367e90e9d56140e5897b7044c41de23cde4cc18e6da1242e
         restart: unless-stopped
         user: 1000:1000
         env_file: [/etc/docker-secrets/gatus.env]

@@ -45,7 +45,7 @@ services:
         healthcheck: {!!merge <<: *healthcheck, test: ['CMD-SHELL', 'pg_isready -U postgres']}
 
     prowlarr:
-        image: lscr.io/linuxserver/prowlarr:2.6.5.5623-ls162@sha256:f2b26429893d4c4cb71941b7ee50b1bdecd9d5f9f9e02d5410615e9f4f7c8d95
+        image: linuxserver/prowlarr:2.6.5.5623-ls162@sha256:f2b26429893d4c4cb71941b7ee50b1bdecd9d5f9f9e02d5410615e9f4f7c8d95
         env_file: *env
         environment:
         - PROWLARR__POSTGRES__HOST=mediarr-db
@@ -66,7 +66,7 @@ services:
         healthcheck: {!!merge <<: *healthcheck, test: 'curl -f http://127.0.0.1:9696/ping || exit 1'}
 
     seerr:
-        image: ghcr.io/seerr-team/seerr:v3.5.2@sha256:aadee014b40e28cf9aa4928bc9d1183a6eb08f8c44d543cddc9efdcb16549be2
+        image: seerr/seerr:v3.5.2@sha256:aadee014b40e28cf9aa4928bc9d1183a6eb08f8c44d543cddc9efdcb16549be2
         entrypoint: [/file-env.sh, docker-entrypoint.sh]
         command: [npm, start]
         init: true
@@ -109,7 +109,7 @@ services:
         healthcheck: {!!merge <<: *healthcheck, test: ['CMD-SHELL', 'curl -f http://127.0.0.1:8082/status'], start_period: 120s, retries: 6}
 
     radarrhd:
-        image: lscr.io/linuxserver/radarr:6.4.4.10685-ls318@sha256:adb6c09d6b729ea5e642c99cea35af72702ef476bf4763f153299ac5db9f0b4f
+        image: linuxserver/radarr:6.4.4.10685-ls318@sha256:adb6c09d6b729ea5e642c99cea35af72702ef476bf4763f153299ac5db9f0b4f
         env_file: *env
         environment:
             !!merge <<: *radarr
@@ -128,7 +128,7 @@ services:
         healthcheck: {!!merge <<: *healthcheck, test: 'curl -f http://127.0.0.1:7878/ping || exit 1'}
 
     radarr4k:
-        image: lscr.io/linuxserver/radarr:6.4.4.10685-ls318@sha256:adb6c09d6b729ea5e642c99cea35af72702ef476bf4763f153299ac5db9f0b4f
+        image: linuxserver/radarr:6.4.4.10685-ls318@sha256:adb6c09d6b729ea5e642c99cea35af72702ef476bf4763f153299ac5db9f0b4f
         env_file: *env
         environment:
             !!merge <<: *radarr
@@ -147,7 +147,7 @@ services:
         healthcheck: {!!merge <<: *healthcheck, test: 'curl -f http://127.0.0.1:7879/ping || exit 1'}
 
     sonarrhd:
-        image: lscr.io/linuxserver/sonarr:4.0.20.3014-ls326@sha256:f247545d23ba8b233d6604575347e48a623fe6ad75dda02348bf81917f3b5c06
+        image: linuxserver/sonarr:4.0.20.3014-ls326@sha256:f247545d23ba8b233d6604575347e48a623fe6ad75dda02348bf81917f3b5c06
         env_file: *env
         environment:
             !!merge <<: *sonarr
@@ -166,7 +166,7 @@ services:
         healthcheck: {!!merge <<: *healthcheck, test: 'curl -f http://127.0.0.1:8989/ping || exit 1'}
 
     sonarr4k:
-        image: lscr.io/linuxserver/sonarr:4.0.20.3014-ls326@sha256:f247545d23ba8b233d6604575347e48a623fe6ad75dda02348bf81917f3b5c06
+        image: linuxserver/sonarr:4.0.20.3014-ls326@sha256:f247545d23ba8b233d6604575347e48a623fe6ad75dda02348bf81917f3b5c06
         env_file: *env
         environment:
             !!merge <<: *sonarr
@@ -206,7 +206,7 @@ services:
         healthcheck: {!!merge <<: *healthcheck, test: ['CMD-SHELL', 'curl -f http://127.0.0.1:6767/ping']}
 
     recyclarr:
-        image: ghcr.io/recyclarr/recyclarr:8.7.2@sha256:6e69e009e1cd7493ff6093e8e187b5d3788c75b4a2c0c5127b6a1beda1c19728
+        image: recyclarr/recyclarr:8.7.2@sha256:6e69e009e1cd7493ff6093e8e187b5d3788c75b4a2c0c5127b6a1beda1c19728
         user: '1000:1000'
         env_file: *env
         environment: [CRON_SCHEDULE=@daily]
