@@ -26,6 +26,7 @@ services:
         secrets: [immich_db_password, immich_redis_password]
         volumes: ['immich-upload:/usr/src/app/upload']
         networks: [traefik-wan, immich-net]
+        user: '33:33'
         cap_drop: [NET_RAW]
         deploy:
             !!merge <<: *deploy
@@ -49,6 +50,7 @@ services:
             MACHINE_LEARNING_MODEL_REVISION: v2
         volumes: ['immich-ml-cache:/cache']
         networks: [immich-net]
+        user: '33:33'
         cap_drop: [NET_RAW]
         deploy:
             !!merge <<: *deploy
