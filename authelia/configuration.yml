@@ -72,11 +72,14 @@ identity_providers:
         rules:
           - policy: two_factor
             subject: "group:admins"
-      famille:
+      family_friends:
         default_policy: deny
         rules:
           - policy: two_factor
-            subject: "group:famille"
+            subject: ["group:admins", "group:famille"]
+          - policy: one_factor
+            subject: "group:friends"
+
     jwks:
       - key_id: main
         # prettier-ignore
@@ -86,7 +89,7 @@ identity_providers:
       - client_id: bookstack
         client_name: Bookstack
         client_secret: "$pbkdf2-sha512$310000$URwYQaGFEHT/tcti0IYbnw$Xi.2uVTajZoqYJswNkigiury25rkNIheAXqd5ui.PbQfmybmzu4xfgiS5XmZZfiErrqlPVNaeVZ90evcdzhhHA"
-        authorization_policy: "famille"
+        authorization_policy: "family_friends"
         require_pkce: true
         pkce_challenge_method: S256
         redirect_uris:
@@ -101,6 +104,22 @@ identity_providers:
         pkce_challenge_method: S256
         redirect_uris:
           - https://forge.macopla.com/user/oauth2/authelia/callback
+        scopes:
+          - openid
+          - profile
+          - email
+
+      # IMMICH
+      - client_id: immich
+        client_name: Immich
+        client_secret: "$pbkdf2-sha512$310000$iLjtT/kKbVgA74WhGyOGPA$vROnohRly7QhzRREel8TLsiURAruVapGJT0HgJgUfSre45uh2HDeHdzwlG6RSAkE2jqessUGXSXaFWPXpT65.g"
+        authorization_policy: "family_friends"
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          - https://photo.macopla.com/auth/login
+          - https://photo.macopla.com/user-settings
+          - app.immich:///oauth-callback
         scopes:
           - openid
           - profile
