@@ -110,11 +110,11 @@ configs:
     waitfor: {name: authelia_waitfor_v1, file: ./waitfor.sh}
     logo: {name: authelia_logo_v1, file: ./assets/logo.png}
     favicon: {name: authelia_favicon_v1, file: ./assets/favicon.ico}
-    template_jwt_html: {name: authelia_template_jwt_html_v1, file: ./templates/IdentityVerificationJWT.html}
+    template_jwt_html: {name: authelia_template_jwt_html_v2, file: ./templates/IdentityVerificationJWT.html}
     template_jwt_txt: {name: authelia_template_jwt_txt_v1, file: ./templates/IdentityVerificationJWT.txt}
-    template_otc_html: {name: authelia_template_otc_html_v1, file: ./templates/IdentityVerificationOTC.html}
+    template_otc_html: {name: authelia_template_otc_html_v2, file: ./templates/IdentityVerificationOTC.html}
     template_otc_txt: {name: authelia_template_otc_txt_v1, file: ./templates/IdentityVerificationOTC.txt}
-    template_event_html: {name: authelia_template_event_html_v1, file: ./templates/Event.html}
+    template_event_html: {name: authelia_template_event_html_v2, file: ./templates/Event.html}
     template_event_txt: {name: authelia_template_event_txt_v1, file: ./templates/Event.txt}
 
 secrets:
