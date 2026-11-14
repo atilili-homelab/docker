@@ -21,10 +21,12 @@ services:
             REDIS_HOSTNAME: immich-redis
             REDIS_PORT: 6379
             REDIS_PASSWORD_FILE: /run/secrets/immich_redis_password
+            IMMICH_CONFIG_FILE: /config/immich.yml
             IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning:3003
             IMMICH_HELMET_FILE: 'true'
-        secrets: [immich_db_password, immich_redis_password]
+        secrets: [immich_db_password, immich_redis_password, immich_oidc_client_secret, immich_smtp_password]
         volumes: ['immich-upload:/usr/src/app/upload']
+        configs: [{source: config, target: /config/immich.yml}]
         networks: [traefik-wan, immich-net]
         user: '33:33'
         cap_drop: [NET_RAW]
@@ -91,16 +93,21 @@ services:
             !!merge <<: *healthcheck
             test: ['CMD-SHELL', 'pg_isready -U immich -d immich']
 
-secrets:
-    immich_db_password: {external: true}
-    immich_redis_password: {external: true}
-
-networks:
-    traefik-wan: {external: true}
-    immich-net: {driver: overlay}
-
 volumes:
     immich-upload: {driver: local, driver_opts: {type: nfs, o: 'addr=nas.macopla.home,nfsvers=4', device: ':/mnt/tank/immich/data/upload'}}
     immich-ml-cache: {driver: local}
     immich-redis_redis: {driver_opts: {type: none, o: bind, device: /data/immich/redis}}
     immich_db: {driver_opts: {type: none, o: bind, device: /data/immich/db}}
+
+configs:
+    config: {name: immich_config_v1, file: ./config.yml, template_driver: golang}
+
+secrets:
+    immich_db_password: {external: true}
+    immich_redis_password: {external: true}
+    immich_oidc_client_secret: {external: true}
+    immich_smtp_password: {external: true}
+
+networks:
+    traefik-wan: {external: true}
+    immich-net: {driver: overlay}

@@ -1,0 +1,44 @@
+nightlyTasks: { startTime: "04:30" }
+notifications:
+  smtp:
+    enabled: true
+    from: Immich <noreply@macopla.com>
+    transport:
+      host: mail.macopla.com
+      port: 465
+      secure: true
+      username: noreply@macopla.com
+      password: '{{ secret "immich_smtp_password" }}'
+oauth:
+  enabled: true
+  autoLaunch: true
+  autoRegister: true
+  buttonText: Connexion avec Authelia
+  clientId: immich
+  clientSecret: '{{ secret "immich_oidc_client_secret" }}'
+  issuerUrl: https://sso.macopla.com
+  tokenEndpointAuthMethod: client_secret_basic
+passwordLogin: { enabled: false }
+server: { externalDomain: https://photo.macopla.com }
+storageTemplate: { enabled: true }
+templates:
+  email:
+    welcomeTemplate: >-
+      Hello <b>{displayName}</b> !<br>
+      <br>
+      Un nouveau compte a été créé pour toi.<br>
+      <br>
+      Connecte toi tout simplement avec ton compte Macopla.<br>
+      <br>
+      Cordialement,<br>
+      Yoann, ton humble serviteur.
+    albumInviteTemplate: >-
+      Hello <b>{recipientName}</b> !<br>
+      <br>
+      <b>{senderName}</b> te fait l'honneur de te partager son album <b>{albumName}</b> :D<br>
+      <br>
+      Clique sur le gros bouton pour admirer ça !
+    albumUpdateTemplate: >-
+      Hello <b>{recipientName}</b> !<br>
+      <br>
+      Nouvelles photos dans l'album <b>{albumName}</b> !
