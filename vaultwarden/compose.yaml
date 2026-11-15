@@ -20,17 +20,18 @@ services:
             ADMIN_TOKEN_FILE: /run/secrets/vaultwarden_admin_token
             DATABASE_URL_FILE: /run/configs/db_url
             SSO_ENABLED: 'true'
-            SSO_AUTHORITY: https://auth.macopla.com/application/o/vault/
-            SSO_CLIENT_ID: G5Vz8fr5Xm1TyLYcYmRbRHGTksts04qiSlpWp6as
-            SSO_CLIENT_SECRET_FILE: /run/secrets/vaultwarden_sso_secret
-            SSO_SCOPES: openid email profile offline_access
             SSO_ALLOW_UNKNOWN_EMAIL_VERIFICATION: 'false'
+            SSO_AUTHORITY: https://sso.macopla.com
             SSO_CLIENT_CACHE_EXPIRATION: 0
+            SSO_CLIENT_ID: vaultwarden
+            SSO_CLIENT_SECRET_FILE: /run/secrets/vaultwarden_oidc_client_secret
             SSO_ONLY: 'false'
+            SSO_PKCE: 'true'
+            SSO_SCOPES: openid email profile offline_access
             SSO_SIGNUPS_MATCH_EMAIL: 'true'
         volumes: ['vaultwarden_data:/data', {type: tmpfs, target: /tmp}]
         configs: [{source: database_url, target: /run/configs/db_url}]
-        secrets: [vaultwarden_admin_token, vaultwarden_sso_secret, vaultwarden_db_password]
+        secrets: [vaultwarden_admin_token, vaultwarden_oidc_client_secret, vaultwarden_db_password]
         networks: [traefik-wan, vaultwarden-net]
         deploy:
             !!merge <<: *deploy
@@ -71,7 +72,7 @@ configs:
 
 secrets:
     vaultwarden_admin_token: {external: true}
-    vaultwarden_sso_secret: {external: true}
+    vaultwarden_oidc_client_secret: {name: vaultwarden_oidc_client_secret_v1, external: true}
     vaultwarden_db_password: {name: vaultwarden_db_password_v1, external: true}
 
 networks:

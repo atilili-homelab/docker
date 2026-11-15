@@ -163,3 +163,21 @@ identity_providers:
           - openid
           - profile
           - email
+
+      # VAULTWARDEN
+      - client_id: vaultwarden
+        client_name: Vaultwarden
+        client_secret: "$pbkdf2-sha512$310000$01NoUVbyU2er528aHbnN6Q$rRBeCHXBvWKiDPdrBx6Mrn6YZy5y/pYLltzW.MILMm7rEGlegnaH67KKbNAVT.KKVeohr7FvgjKjYYQuxlHutw"
+        authorization_policy: "family_only"
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          - https://vault.macopla.com/identity/connect/oidc-signin
+        scopes:
+          - openid
+          - offline_access
+          - profile
+          - email
+        grant_types:
+          - authorization_code
+          - refresh_token
