@@ -11,7 +11,7 @@ x-healthcheck: &healthcheck
 
 services:
     tracearr:
-        image: ghcr.io/connorgallopo/tracearr:2.6.1@sha256:4c4afa7b453a4a9efceccb9e3f48e57a88abaf8ef2e207abf0099fdac4c71aa4
+        image: ghcr.io/connorgallopo/tracearr:3.1.7
         environment:
             TZ: Europe/Paris
             LOG_LEVEL: info
