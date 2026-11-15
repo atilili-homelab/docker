@@ -76,7 +76,7 @@ services:
                 traefik.enable: 'true'
                 traefik.swarm.network: traefik-lan
                 traefik.http.routers.prometheus.rule: Host(`prom.macopla.com`)
-                traefik.http.routers.prometheus.middlewares: lan@file
+                traefik.http.routers.prometheus.middlewares: lan-sso@file
                 traefik.http.services.prometheus.loadbalancer.server.port: 9090
         healthcheck:
             !!merge <<: *healthcheck

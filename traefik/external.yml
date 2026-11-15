@@ -39,7 +39,7 @@ http:
       rule: "Host(`seedbox.macopla.com`)"
       service: seedbox
       middlewares:
-        - lan
+        - lan-sso
 
     technitium:
       rule: "Host(`dns.macopla.com`)"

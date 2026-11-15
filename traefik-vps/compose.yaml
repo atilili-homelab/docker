@@ -8,8 +8,8 @@ services:
         - {source: external, target: /dynamic/external.yml}
         - {source: static, target: /etc/traefik/traefik.yml}
         environment:
-        - TZ=Europe/Paris
-        - CF_DNS_API_TOKEN_FILE=/run/secrets/traefik_cloudflare_api_token
+            TZ: Europe/Paris
+            CF_DNS_API_TOKEN_FILE: /run/secrets/traefik_cloudflare_api_token
         secrets: [traefik_cloudflare_api_token]
         # Publication sur l'IP du tunnel uniquement : Docker contourne UFW,
         # un "80:80" serait exposé sur l'IP publique.
@@ -40,5 +40,4 @@ configs:
     static: {name: traefik_static, file: ./traefik-vps.yml}
 
 secrets:
-    traefik_cloudflare_api_token:
-        file: /etc/docker-secrets/traefik_cloudflare_api_token
+    traefik_cloudflare_api_token: {file: /etc/docker-secrets/traefik_cloudflare_api_token}
