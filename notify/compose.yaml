@@ -36,7 +36,7 @@ services:
             test: [CMD-SHELL, 'wget -q --tries=1 http://localhost:80/v1/health -O - | grep -Eo ''"healthy"\s*:\s*true'' || exit 1']
 
     apprise:
-        image: caronc/apprise:v1.5.4@sha256:c5ea17408c10fd84c8fdb05a421114a1a677b16343c274bf9b1a55701b530829
+        image: caronc/apprise:2.1.0@sha256:bd7dc73b75882326b97d2963b7c3dd2a5e033df27d84c51f0090465d583fb316
         environment:
             TZ: Europe/Paris
             APPRISE_STATEFUL_MODE: simple
