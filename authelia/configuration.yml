@@ -51,6 +51,11 @@ notifier:
 access_control:
   default_policy: deny
   rules:
+    # API d'apprise : les scripts et services du LAN postent sans session SSO
+    - domain: "apprise.macopla.com"
+      resources: ["^/notify/"]
+      networks: ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
+      policy: bypass
     - domain: "*.macopla.com"
       policy: two_factor
 
