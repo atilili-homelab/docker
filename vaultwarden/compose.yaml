@@ -1,3 +1,13 @@
+x-deploy: &deploy
+    update_config: {failure_action: rollback, order: stop-first}
+    restart_policy: {delay: 10s, window: 120s}
+
+x-healthcheck: &healthcheck
+    interval: 30s
+    timeout: 10s
+    start_period: 10s
+    retries: 3
+
 services:
     vaultwarden:
         image: vaultwarden/server:1.37.3@sha256:1587c45feaa479f1f5e8af3b00eded36bff77bcf1880cf8dbf0541706dd470e0
@@ -20,15 +30,8 @@ services:
         secrets: [vaultwarden_admin_token, vaultwarden_sso_secret]
         volumes: ['vaultwarden_data:/data', {type: tmpfs, target: /tmp}]
         networks: [traefik-wan]
-        healthcheck:
-            test: curl -f http://127.0.0.1:80/alive || exit 1
-            interval: 30s
-            timeout: 10s
-            start_period: 10s
-            retries: 3
         deploy:
-            update_config: {failure_action: rollback, order: stop-first}
-            restart_policy: {delay: 10s, window: 120s}
+            !!merge <<: *deploy
             resources: {limits: {memory: 128M}}
             placement: {constraints: [node.labels.tier == infra]}
             labels:
@@ -36,13 +39,36 @@ services:
                 traefik.swarm.network: traefik-wan
                 traefik.http.routers.vaultwarden.rule: Host(`vault.macopla.com`)
                 traefik.http.services.vaultwarden.loadbalancer.server.port: 80
+        healthcheck:
+            !!merge <<: *healthcheck
+            test: curl -f http://127.0.0.1:80/alive || exit 1
+
+    vaultwarden-db:
+        image: postgres:18.7-trixie
+        environment:
+            POSTGRES_USER: vaultwarden
+            POSTGRES_DB: vaultwarden
+            POSTGRES_PASSWORD_FILE: /run/secrets/vaultwarden_db_password
+        volumes: ['vaultwarden_db:/var/lib/postgresql']
+        secrets: [vaultwarden_db_password]
+        networks: [vaultwarden-net]
+        deploy:
+            !!merge <<: *deploy
+            resources: {limits: {memory: 256M}}
+            placement: {constraints: [node.labels.tier == database]}
+        healthcheck:
+            !!merge <<: *healthcheck
+            test: [CMD-SHELL, pg_isready -U vaultwarden -d vaultwarden]
 
 volumes:
     vaultwarden_data: {driver_opts: {type: none, o: bind, device: /data/vaultwarden}}
+    vaultwarden_db: {driver_opts: {type: none, o: bind, device: /data/vaultwarden/db}}
 
 secrets:
     vaultwarden_admin_token: {external: true}
     vaultwarden_sso_secret: {external: true}
+    vaultwarden_db_password: {name: vaultwarden_db_password_v1, external: true}
 
 networks:
     traefik-wan: {external: true}
+    vaultwarden-net: {driver: overlay, attachable: true}
