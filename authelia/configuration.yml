@@ -148,3 +148,17 @@ identity_providers:
           - openid
           - profile
           - email
+
+      # TRACEARR
+      - client_id: tracearr
+        client_name: Tracearr
+        client_secret: "$pbkdf2-sha512$310000$WLnXBKyzHEtZfXjWos4ZlA$ErpizY9h8Zhql65YNqLAg9xPh3SGSj5s/3TKSuyHvWGWNjmLdBGvalQ0vngGgeMI.AnixfjQNxqXl8vcQFcLOQ"
+        authorization_policy: "admins"
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          - https://tracearr.macopla.com/api/v1/auth/oauth2/callback/oidc
+        scopes:
+          - openid
+          - profile
+          - email

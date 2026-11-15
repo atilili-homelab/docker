@@ -12,6 +12,8 @@ x-healthcheck: &healthcheck
 services:
     tracearr:
         image: ghcr.io/connorgallopo/tracearr:3.1.7
+        entrypoint: [/file-env.sh, /entrypoint.sh]
+        command: [node, apps/server/dist/index.js]
         environment:
             TZ: Europe/Paris
             LOG_LEVEL: info
@@ -21,9 +23,15 @@ services:
             JWT_SECRET_FILE: /run/secrets/tracearr_jwt_secret
             COOKIE_SECRET_FILE: /run/secrets/tracearr_cookie_secret
             CORS_ORIGIN: https://tracearr.macopla.com
+            OIDC_ISSUER_URL: https://sso.macopla.com
+            OIDC_CLIENT_ID: tracearr
+            OIDC_CLIENT_SECRET_FILE: /run/secrets/tracearr_oidc_client_secret
+            OIDC_PROVIDER_NAME: Macopla-SSO
         volumes: ['tracearr_data:/data/tracearr', 'tracearr_backup:/data/backup']
-        configs: [{source: tracearr_db_url, target: /run/configs/tracearr_db_url}]
-        secrets: [tracearr_db_password, tracearr_jwt_secret, tracearr_cookie_secret]
+        configs:
+        - {source: tracearr_db_url, target: /run/configs/tracearr_db_url}
+        - {source: file_env, target: /file-env.sh, mode: 0555}
+        secrets: [tracearr_db_password, tracearr_jwt_secret, tracearr_cookie_secret, tracearr_oidc_client_secret]
         networks: [traefik-wan, tracearr-net]
         healthcheck:
             !!merge <<: *healthcheck
@@ -78,11 +86,13 @@ volumes:
 
 configs:
     tracearr_db_url: {name: tracearr_db_url_v1, file: ./database_url.tmpl, template_driver: golang}
+    file_env: {name: tracearr_file_env_v1, file: ../_shared/file-env.sh}
 
 secrets:
     tracearr_db_password: {name: tracearr_db_password_v1, external: true}
     tracearr_jwt_secret: {name: tracearr_jwt_secret_v1, external: true}
     tracearr_cookie_secret: {name: tracearr_cookie_secret_v1, external: true}
+    tracearr_oidc_client_secret: {name: tracearr_oidc_client_secret_v1, external: true}
 
 networks:
     traefik-wan: {external: true}
