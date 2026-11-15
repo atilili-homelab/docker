@@ -1,0 +1,233 @@
+global:
+  scrape_interval: 15s
+  external_labels:
+    cluster: prod
+
+rule_files:
+  - /etc/prometheus/pve-rules.yml
+  - /etc/prometheus/container-rules.yml
+
+scrape_configs:
+  # Scrape Prometheus himself
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - localhost:9090
+
+  # Scrape Loki
+  - job_name: "loki"
+    dockerswarm_sd_configs:
+      - host: tcp://monitor-socket-proxy-manager:2375
+        role: tasks
+    relabel_configs:
+      - source_labels: [__meta_dockerswarm_service_name]
+        regex: monitoring_loki
+        action: keep
+      - source_labels: [__meta_dockerswarm_task_desired_state]
+        regex: running
+        action: keep
+      - source_labels: [__address__]
+        regex: '([^:]+)(?::\d+)?'
+        target_label: __address__
+        replacement: "${1}:3100"
+      - source_labels: [__meta_dockerswarm_node_hostname]
+        target_label: instance
+      - source_labels: [__meta_dockerswarm_network_name]
+        regex: monitoring_monitoring-net
+        action: keep
+
+  # Scrape Alloy
+  - job_name: "alloy"
+    dockerswarm_sd_configs:
+      - host: tcp://monitor-socket-proxy-manager:2375
+        role: tasks
+    relabel_configs:
+      - source_labels: [__meta_dockerswarm_service_name]
+        regex: monitoring_alloy
+        action: keep
+      - source_labels: [__meta_dockerswarm_task_desired_state]
+        regex: running
+        action: keep
+      - source_labels: [__address__]
+        regex: '([^:]+)(?::\d+)?'
+        target_label: __address__
+        replacement: "${1}:12345"
+      - source_labels: [__meta_dockerswarm_node_hostname]
+        target_label: instance
+      - source_labels: [__meta_dockerswarm_network_name]
+        regex: monitoring_monitoring-net
+        action: keep
+
+  # Scrape Grafana
+  - job_name: grafana
+    dockerswarm_sd_configs:
+      - host: tcp://monitor-socket-proxy-manager:2375
+        role: tasks
+    relabel_configs:
+      - source_labels: [__meta_dockerswarm_service_name]
+        regex: monitoring_grafana
+        action: keep
+      - source_labels: [__meta_dockerswarm_task_desired_state]
+        regex: running
+        action: keep
+      - source_labels: [__meta_dockerswarm_network_name]
+        regex: monitoring_monitoring-net
+        action: keep
+      - source_labels: [__address__]
+        regex: '([^:]+)(?::\d+)?'
+        target_label: __address__
+        replacement: "${1}:3000"
+      - source_labels: [__meta_dockerswarm_node_hostname]
+        target_label: instance
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: grafana_apiserver_.*|grafana_feature_toggles_info
+        action: drop
+
+  # Scrape cluster Proxmox (CPU, RAM, disques, reseau).
+  # Les 3 cibles renvoient chacune la vue complete du cluster : la
+  # redondance est volontaire (resilience si un hyperviseur tombe), les
+  # doublons sont fusionnes par les recording rules de pve-rules.yml.
+  - job_name: pve
+    metrics_path: /pve
+    params:
+      module: [default]
+      cluster: ["1"]
+      node: ["0"]
+    static_configs:
+      - targets:
+          - meganode.macopla.home
+          - supernode.macopla.home
+          - mininode.macopla.home
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        regex: '([^.]+)\..*'
+        target_label: instance
+        replacement: ${1}
+      - target_label: __address__
+        replacement: pve-exporter:9221
+
+  # Donnees propres a chaque hyperviseur (replication, souscription,
+  # onboot) : pas de doublon, chaque cible ne parle que d'elle-meme.
+  # Fournit aussi le signal de vie par serveur via up{job="pve-node"}.
+  - job_name: pve-node
+    metrics_path: /pve
+    params:
+      module: [default]
+      cluster: ["0"]
+      node: ["1"]
+    static_configs:
+      - targets:
+          - meganode.macopla.home
+          - supernode.macopla.home
+          - mininode.macopla.home
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        regex: '([^.]+)\..*'
+        target_label: instance
+        replacement: ${1}
+      - target_label: __address__
+        replacement: pve-exporter:9221
+
+  # Metriques systeme des hyperviseurs (PSI, vmstat, meminfo, diskstats...),
+  # exposees par Alloy (prometheus.exporter.unix) sur chaque noeud PVE.
+  # Pas d'authentification : le port 12345 ne doit rester joignable que depuis
+  # le LAN.
+  - job_name: pve-unix
+    metrics_path: /api/v0/component/prometheus.exporter.unix.default/metrics
+    static_configs:
+      - targets:
+          - meganode.macopla.home:12345
+          - supernode.macopla.home:12345
+          - mininode.macopla.home:12345
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^.]+)\..*'
+        target_label: instance
+        replacement: ${1}
+
+  # Metriques propres d'Alloy sur les hyperviseurs (sante de l'agent, debit
+  # d'envoi des logs vers Loki).
+  - job_name: pve-alloy
+    static_configs:
+      - targets:
+          - meganode.macopla.home:12345
+          - supernode.macopla.home:12345
+          - mininode.macopla.home:12345
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^.]+)\..*'
+        target_label: instance
+        replacement: ${1}
+
+  # Scrape swarm VMs
+  - job_name: node
+    dockerswarm_sd_configs:
+      - host: tcp://monitor-socket-proxy-manager:2375
+        role: nodes
+    relabel_configs:
+      - source_labels: [__meta_dockerswarm_node_address]
+        target_label: __address__
+        replacement: $1:9100
+      # Swarm renvoie 0.0.0.0 comme adresse du noeud leader : repli sur le nom DNS.
+      - source_labels: [__address__, __meta_dockerswarm_node_hostname]
+        regex: '0\.0\.0\.0:9100;(.+)'
+        target_label: __address__
+        replacement: ${1}.macopla.home:9100
+      - source_labels: [__meta_dockerswarm_node_hostname]
+        target_label: instance
+      - source_labels: [__meta_dockerswarm_node_role]
+        target_label: role
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: node_scrape_collector_(duration_seconds|success)
+        action: drop
+
+  # Scrape cAdvisor on swarm nodes
+  - job_name: "cadvisor"
+    sample_limit: 15000
+    dockerswarm_sd_configs:
+      - host: tcp://monitor-socket-proxy-manager:2375
+        role: tasks
+    relabel_configs:
+      - source_labels: [__meta_dockerswarm_service_name]
+        regex: monitoring_cadvisor
+        action: keep
+      - source_labels: [__meta_dockerswarm_task_desired_state]
+        regex: running
+        action: keep
+      - source_labels: [__address__]
+        regex: '([^:]+)(?::\d+)?'
+        target_label: __address__
+        replacement: "${1}:8080"
+      - source_labels: [__meta_dockerswarm_node_hostname]
+        target_label: instance
+      - source_labels: [__meta_dockerswarm_network_name]
+        regex: monitoring_monitoring-net
+        action: keep
+
+  # Scrape traefik networking
+  - job_name: traefik
+    dockerswarm_sd_configs:
+      - host: tcp://monitor-socket-proxy-manager:2375
+        role: tasks
+    relabel_configs:
+      - source_labels: [__meta_dockerswarm_task_desired_state]
+        regex: running
+        action: keep
+      - source_labels: [__meta_dockerswarm_service_name]
+        regex: traefik_traefik
+        action: keep
+      - source_labels: [__meta_dockerswarm_network_name]
+        regex: traefik-lan
+        action: keep
+      - source_labels: [__address__]
+        regex: '([^:]+)(?::\d+)?'
+        target_label: __address__
+        replacement: "${1}:8082"
+      - source_labels: [__meta_dockerswarm_node_hostname]
+        target_label: instance

@@ -1,0 +1,156 @@
+---
+# Recording rules conteneurs
+# Normalise deux mondes sous un label commun `service` : les services Swarm
+# (label swarm.service.name) et les conteneurs Compose standalone (projet/service).
+# Nommage : convention niveau:metrique:operation.
+
+groups:
+  - name: container_normalize
+    interval: 1m
+    rules:
+      # Memoire reellement facturee par le kernel : c'est cette valeur que
+      # l'OOM killer compare a la limite.
+      - record: instance_service:container_memory_working_set_bytes:max
+        expr: >
+          max by (instance, service) (
+            label_replace(
+              container_memory_working_set_bytes{container_label_com_docker_swarm_service_name!=""},
+              "service", "$1", "container_label_com_docker_swarm_service_name", "(.*)")
+            or
+            label_join(
+              container_memory_working_set_bytes{container_label_com_docker_swarm_service_name="",
+                                                 container_label_com_docker_compose_project!=""},
+              "service", "/", "container_label_com_docker_compose_project",
+                              "container_label_com_docker_compose_service")
+          )
+
+      # Limite declaree. Vaut 0 pour les conteneurs sans limite :
+      # toujours filtrer par `> 0` avant de diviser par cette serie.
+      - record: instance_service:container_spec_memory_limit_bytes:max
+        expr: >
+          max by (instance, service) (
+            label_replace(
+              container_spec_memory_limit_bytes{container_label_com_docker_swarm_service_name!=""},
+              "service", "$1", "container_label_com_docker_swarm_service_name", "(.*)")
+            or
+            label_join(
+              container_spec_memory_limit_bytes{container_label_com_docker_swarm_service_name="",
+                                                container_label_com_docker_compose_project!=""},
+              "service", "/", "container_label_com_docker_compose_project",
+                              "container_label_com_docker_compose_service")
+          )
+
+      # Nombre de fois ou le kernel a bloque une allocation faute de place.
+      # Signal precoce : le conteneur a ete freine sans forcement etre tue.
+      - record: instance_service:container_memory_events_max_total:max
+        expr: >
+          max by (instance, service) (
+            label_replace(
+              container_memory_events_max_total{container_label_com_docker_swarm_service_name!=""},
+              "service", "$1", "container_label_com_docker_swarm_service_name", "(.*)")
+            or
+            label_join(
+              container_memory_events_max_total{container_label_com_docker_swarm_service_name="",
+                                                container_label_com_docker_compose_project!=""},
+              "service", "/", "container_label_com_docker_compose_project",
+                              "container_label_com_docker_compose_service")
+          )
+
+      # Memoire anonyme, hors page cache. C'est elle qu'il faut regarder pour
+      # juger un service a fort trafic disque : son working set colle a la
+      # limite a cause du cache, pas de son besoin reel.
+      - record: instance_service:container_memory_rss:max
+        expr: >
+          max by (instance, service) (
+            label_replace(
+              container_memory_rss{container_label_com_docker_swarm_service_name!=""},
+              "service", "$1", "container_label_com_docker_swarm_service_name", "(.*)")
+            or
+            label_join(
+              container_memory_rss{container_label_com_docker_swarm_service_name="",
+                                   container_label_com_docker_compose_project!=""},
+              "service", "/", "container_label_com_docker_compose_project",
+                              "container_label_com_docker_compose_service")
+          )
+
+      # Part du temps ou les process ont ete bloques faute de memoire (PSI).
+      # Seul signal qui distingue une vraie souffrance d'un simple recyclage
+      # de cache : un freinage sans blocage est benin.
+      - record: instance_service:container_pressure_memory_stalled_seconds:rate5m
+        expr: >
+          max by (instance, service) (
+            label_replace(
+              rate(container_pressure_memory_stalled_seconds_total{container_label_com_docker_swarm_service_name!=""}[5m]),
+              "service", "$1", "container_label_com_docker_swarm_service_name", "(.*)")
+            or
+            label_join(
+              rate(container_pressure_memory_stalled_seconds_total{container_label_com_docker_swarm_service_name="",
+                                                                   container_label_com_docker_compose_project!=""}[5m]),
+              "service", "/", "container_label_com_docker_compose_project",
+                              "container_label_com_docker_compose_service")
+          )
+
+      # Consommation CPU en coeurs.
+      - record: instance_service:container_cpu_usage_seconds:rate5m
+        expr: >
+          max by (instance, service) (
+            label_replace(
+              rate(container_cpu_usage_seconds_total{container_label_com_docker_swarm_service_name!=""}[5m]),
+              "service", "$1", "container_label_com_docker_swarm_service_name", "(.*)")
+            or
+            label_join(
+              rate(container_cpu_usage_seconds_total{container_label_com_docker_swarm_service_name="",
+                                                     container_label_com_docker_compose_project!=""}[5m]),
+              "service", "/", "container_label_com_docker_compose_project",
+                              "container_label_com_docker_compose_service")
+          )
+
+      # Part du temps ou le conteneur a ete bride par sa limite CPU.
+      # N'existe que pour les conteneurs ayant une limite (pas de periode CFS sinon).
+      - record: instance_service:container_cpu_throttled_periods:ratio5m
+        expr: >
+          max by (instance, service) (
+            label_replace(
+              rate(container_cpu_cfs_throttled_periods_total{container_label_com_docker_swarm_service_name!=""}[5m])
+              / (rate(container_cpu_cfs_periods_total{container_label_com_docker_swarm_service_name!=""}[5m]) > 0),
+              "service", "$1", "container_label_com_docker_swarm_service_name", "(.*)")
+            or
+            label_join(
+              rate(container_cpu_cfs_throttled_periods_total{container_label_com_docker_swarm_service_name="",
+                                                             container_label_com_docker_compose_project!=""}[5m])
+              / (rate(container_cpu_cfs_periods_total{container_label_com_docker_swarm_service_name="",
+                                                      container_label_com_docker_compose_project!=""}[5m]) > 0),
+              "service", "/", "container_label_com_docker_compose_project",
+                              "container_label_com_docker_compose_service")
+          )
+
+  # Ne jamais depasser 2m ici : Prometheus ignore une serie sans point dans les
+  # 5 dernieres minutes, un intervalle plus long rendrait ces regles invisibles
+  # la plupart du temps.
+  - name: container_derive
+    interval: 2m
+    rules:
+      # Pic sur 7 jours. Regle separee : la fenetre longue est ainsi evaluee
+      # une seule fois au lieu de trois dans la regle suivante.
+      - record: service:container_memory_working_set_bytes:max7d
+        expr: >
+          max by (service) (
+            max_over_time(instance_service:container_memory_working_set_bytes:max[7d])
+          )
+
+      # Limite conseillee : le plus grand entre pic +30 % et pic +64Mo,
+      # arrondi au multiple de 64Mo superieur. Le facteur couvre les gros
+      # services, la marge fixe evite de laisser 3 Mo de repli aux petits.
+      # `a > b or b` est l'idiome PromQL du maximum terme a terme.
+      - record: service:container_memory_recommended_limit:bytes
+        expr: >
+          ceil(
+            (
+              (
+                service:container_memory_working_set_bytes:max7d * 1.3
+                > service:container_memory_working_set_bytes:max7d + 67108864
+              )
+              or
+              (service:container_memory_working_set_bytes:max7d + 67108864)
+            ) / 67108864
+          ) * 67108864

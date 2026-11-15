@@ -1,0 +1,162 @@
+// Collecteur de logs Grafana Alloy — déployé en mode global sur chaque nœud Swarm.
+//
+// Principe : la DÉCOUVERTE des conteneurs passe par le socket-proxy local
+// (requêtes HTTP courtes), mais la LECTURE des logs se fait directement sur les
+// fichiers json-file de Docker. Les deux sont séparés parce que le socket-proxy
+// (haproxy) coupe toute connexion au bout de 10 minutes, ce qui rendrait un
+// streaming de logs via l'API Docker instable.
+
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+// ---- Découverte : requêtes courtes vers le socket-proxy LOCAL ----
+discovery.docker "local" {
+  host             = "tcp://" + sys.env("NODE_FQDN") + ":2378"
+  refresh_interval = "15s"
+}
+
+// ---- Labels d'indexation + calcul du chemin de log ----
+discovery.relabel "containers" {
+  targets = discovery.docker.local.targets
+
+  // 1. Stack Swarm
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_stack_namespace"]
+    target_label  = "stack"
+  }
+
+  // 2. Service Swarm
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_swarm_service_name"]
+    target_label  = "service"
+  }
+
+  // 3. Repli Compose : "projet/service" pour les conteneurs standalone
+  //    Ne s'applique que si "service" est encore vide
+  rule {
+    source_labels = [
+      "service",
+      "__meta_docker_container_label_com_docker_compose_project",
+      "__meta_docker_container_label_com_docker_compose_service",
+    ]
+    separator    = ";"
+    regex        = ";(.+);(.+)"
+    target_label = "service"
+    replacement  = "$1/$2"
+  }
+
+  // 4. Dernier repli : nom du conteneur, pour un conteneur lancé à la main
+  //    (ni Swarm ni Compose). Docker préfixe ce nom par "/".
+  rule {
+    source_labels = ["service", "__meta_docker_container_name"]
+    separator     = ";"
+    regex         = ";/(.+)"
+    target_label  = "service"
+    replacement   = "$1"
+  }
+
+  // 5. Même repli pour "stack" : le projet Compose en tient lieu.
+  rule {
+    source_labels = ["stack", "__meta_docker_container_label_com_docker_compose_project"]
+    separator     = ";"
+    regex         = ";(.+)"
+    target_label  = "stack"
+    replacement   = "$1"
+  }
+
+  // 6. Nœud d'origine, injecté par Swarm via {{.Node.Hostname}} dans le compose.
+  rule {
+    target_label = "node"
+    replacement  = sys.env("NODE_NAME")
+  }
+
+  // 7. Chemin du fichier de log. L'ID sert deux fois : nom du répertoire
+  //    et préfixe du fichier.
+  rule {
+    source_labels = ["__meta_docker_container_id"]
+    regex         = "(.+)"
+    target_label  = "__path__"
+    replacement   = "/var/lib/docker/containers/$1/$1-json.log"
+  }
+
+  // 8. Ne conserver que les labels utiles.
+  //    discovery.docker émet UNE TARGET PAR RÉSEAU du conteneur : un service
+  //    sur traefik-public + prometheus-net en produit deux, pointant vers le
+  //    même fichier. Elles ne diffèrent que par leurs labels __meta_docker_network_*
+  //    et __address__. En les supprimant, les targets deviennent strictement
+  //    identiques et fusionnent, sinon le fichier serait lu deux fois et
+  //    chaque ligne ingérée en double.
+  rule {
+    action = "labelkeep"
+    regex  = "stack|service|node|__path__"
+  }
+}
+
+// ---- Lecture : fichiers json-file, pas de stream HTTP ----
+local.file_match "containers" {
+  path_targets = discovery.relabel.containers.output
+}
+
+loki.source.file "containers" {
+  targets       = local.file_match.containers.targets
+  forward_to    = [loki.process.docker.receiver]
+  tail_from_end = true
+}
+
+loki.process "docker" {
+  stage.docker {}
+
+  // loki.source.file ajoute automatiquement un label "filename" contenant le
+  // chemin complet, donc l'ID du conteneur. Cet ID change a chaque
+  // redeploiement : sans ce drop, chaque mise a jour d'un service creerait un
+  // nouveau stream et couperait la continuite de ses logs.
+  // Le labelkeep de discovery.relabel ne peut pas l'attraper : le label est
+  // ajoute plus loin dans le pipeline.
+  stage.label_drop {
+    values = ["filename"]
+  }
+
+  forward_to = [loki.write.default.receiver]
+}
+
+// ---- journald ----
+discovery.relabel "journal" {
+  targets = []
+  rule {
+    source_labels = ["__journal__systemd_unit"]
+    target_label  = "unit"
+  }
+  rule {
+    source_labels = ["__journal_priority_keyword"]
+    target_label  = "level"
+  }
+
+  // systemd numerote chaque connexion (session-42.scope, session-169.scope...)
+  // avec un compteur monotone qui ne se reinitialise jamais. Sans cette
+  // normalisation, chaque connexion SSH creerait un stream Loki inedit,
+  // conserve 7 jours : une croissance sans fin de la cardinalite.
+  // Meme motif que le label "filename" cote conteneurs, entre par journald.
+  rule {
+    source_labels = ["unit"]
+    regex         = "session-\\d+\\.scope"
+    target_label  = "unit"
+    replacement   = "session.scope"
+  }
+}
+
+loki.source.journal "system" {
+  path          = "/var/log/journal"
+  max_age       = "12h"
+  labels        = { job = "systemd-journal", node = sys.env("NODE_NAME") }
+  relabel_rules = discovery.relabel.journal.rules
+  forward_to    = [loki.write.default.receiver]
+}
+
+// ---- Envoi ----
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

@@ -1,0 +1,96 @@
+---
+# Provisionnement Grafana Alerting : point de contact + routage.
+#
+# Chaine de notification :
+#   Grafana --webhook--> Apprise (http://notify_apprise:8000/notify/apprise) --> ntfy
+#
+# On passe par Apprise plutot que d'attaquer ntfy directement pour deux raisons :
+#   - ntfy tourne en NTFY_AUTH_DEFAULT_ACCESS=deny-all, il faudrait donc placer
+#     un token dans ce fichier, qui est versionne ;
+#   - Apprise detient deja cette configuration et rend le meme service aux
+#     playbooks Ansible (apt-update-install.yml, backup-postgres.yml), qui
+#     postent sur la meme cle avec les tags infra-error / infra-warning / infra-ok.
+#
+# Grafana et Apprise partagent le reseau traefik-lan : Grafana joint Apprise par
+# son nom Swarm complet (notify_apprise), sans passer par Traefik ni CrowdSec, pour
+# que les alertes partent meme quand Traefik est en panne. Le nom complet evite
+# toute ambiguite avec un autre service `apprise` sur ce reseau partage.
+
+apiVersion: 1
+
+# ---------------------------------------------------------------------------
+# Gabarit du corps envoye a Apprise.
+#
+# Le webhook Grafana emet son propre format JSON, qu'Apprise ne comprend pas :
+# Apprise attend {title, body, tag}. On redefinit donc integralement le corps
+# via l'option `payloadTemplate` du point de contact.
+#
+# reReplaceAll neutralise les guillemets presents dans les annotations, qui
+# casseraient le JSON produit.
+# ---------------------------------------------------------------------------
+templates:
+  - orgId: 1
+    name: apprise_payload
+    template: |
+      {{ define "apprise_payload" }}
+      {
+        "title": "{{ if eq .Status "firing" }}[ALERTE]{{ else }}[RESOLU]{{ end }} {{ reReplaceAll "\"" "'" .CommonLabels.alertname }}",
+        "body": "{{ range .Alerts }}{{ reReplaceAll "\"" "'" .Annotations.summary }} — {{ end }}",
+        "tag": "{{ if eq .Status "firing" }}infra-error{{ else }}infra-ok{{ end }}"
+      }
+      {{ end }}
+
+contactPoints:
+  - orgId: 1
+    name: apprise
+    receivers:
+      - uid: apprise_webhook
+        type: webhook
+        # On veut aussi la notification de retour a la normale.
+        disableResolveMessage: false
+        settings:
+          url: http://notify_apprise:8000/notify/apprise
+          httpMethod: POST
+          payloadTemplate: '{{ template "apprise_payload" . }}'
+
+  # Heartbeat du dead man's switch : l'URL designe l'external endpoint
+  # heartbeat/grafana-alerting de Gatus. Le token est le secret Docker
+  # gatus_push_token, lu au provisionnement par $__file.
+  - orgId: 1
+    name: gatus-heartbeat
+    receivers:
+      - uid: gatus_heartbeat_webhook
+        type: webhook
+        disableResolveMessage: true
+        settings:
+          url: https://status.macopla.com/api/v1/endpoints/heartbeat_grafana-alerting/external?success=true
+          httpMethod: POST
+          authorization_scheme: Bearer
+          authorization_credentials: $__file{/run/secrets/gatus_push_token}
+
+# ---------------------------------------------------------------------------
+# Routage : tout part vers Apprise, sauf le heartbeat Gatus.
+#
+# repeat_interval a 6h : une panne silencieuse comme celle du 07/08 doit
+# rappeler regulierement son existence, pas notifier une seule fois puis
+# se taire.
+# ---------------------------------------------------------------------------
+policies:
+  - orgId: 1
+    receiver: apprise
+    group_by:
+      - alertname
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 6h
+    routes:
+      # Le heartbeat ne doit pas atteindre Apprise (continue: false par
+      # defaut). repeat_interval n'est evalue qu'aux ticks de group_interval :
+      # un envoi toutes les 1 a 2 min en pratique, d'ou le heartbeat de 5 min
+      # cote Gatus.
+      - receiver: gatus-heartbeat
+        object_matchers:
+          - ["heartbeat", "=", "true"]
+        group_wait: 10s
+        group_interval: 1m
+        repeat_interval: 1m

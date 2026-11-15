@@ -148,13 +148,13 @@ run_directory = "notify"
 ##
 
 [[stack]]
-name        = "prometheus"
+name        = "monitoring"
 description = "Service de monitoring des services et serveurs"
 tags        = ["stack"]
 [stack.config]
 swarm         = "Prod Swarm"
-linked_repo   = "homelab"
-run_directory = "stacks/prometheus"
+linked_repo   = "docker"
+run_directory = "monitoring"
 
 ##
 

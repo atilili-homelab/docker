@@ -1,0 +1,625 @@
+---
+# Regles d'alerte Grafana provisionnees.
+#
+# Contexte : incident du 07/08/2026. Le playbook de patching a reboote les
+# 4 workers ; au redemarrage le DNS overlay n'etait pas pret, les healthchecks
+# ont echoue, Swarm a envoye SIGTERM et les conteneurs sont sortis en code 0.
+# Avec restart_policy `on-failure`, Swarm n'a rien relance : 10 services sont
+# restes a 0/1 pendant 22h sans le moindre signal.
+#
+# Prometheus n'expose aucune metrique "replicas desires vs actuels" : le
+# socket-proxy sert de dockerswarm_sd_configs (decouverte de cibles), pas de
+# source de metriques Swarm. Et seuls les services exposant des metriques ont
+# une cible `up` — authentik, sonarr ou bookstack n'en ont aucune.
+#
+# La seule source universelle est cAdvisor. On s'appuie donc sur les recording
+# rules de container-rules.yml, qui normalisent deja tous les conteneurs
+# (Swarm et Compose) sous un label `service` commun.
+#
+# UID du datasource Prometheus : PBFA97CFB590B2093 (auto-genere par Grafana,
+# stocke en base). Il est repris tel quel pour ne pas casser les dashboards
+# existants qui le referencent.
+
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: swarm
+    folder: Infra
+    interval: 1m
+    rules:
+      # -------------------------------------------------------------------
+      # La regle qui aurait detecte l'incident du 07/08.
+      #
+      # Principe : comparer l'ensemble des services vus il y a 1h a ceux vus
+      # maintenant. Tout service present avant et absent ensuite remonte.
+      # Aucune liste de services a maintenir — c'est ce qui rend la regle
+      # utile face aux pannes non anticipees.
+      #
+      # noDataState: OK est indispensable : quand rien n'a disparu, la
+      # requete ne renvoie aucune serie. Sans ce reglage, l'absence de
+      # resultat serait interpretee comme une alerte permanente.
+      # -------------------------------------------------------------------
+      - uid: swarm_service_disparu
+        title: Service disparu
+        condition: B
+        # 10 min : absorbe les redeploiements Komodo et les mises a jour
+        # d'image declenchees par Renovate, qui font brievement disparaitre
+        # un conteneur sans que ce soit une panne.
+        for: 10m
+        annotations:
+          summary: >-
+            Le service {{ $labels.service }} tournait il y a une heure et n'a
+            plus aucun conteneur actif.
+        labels:
+          severity: critical
+        isPaused: false
+        noDataState: OK
+        execErrState: Alerting
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              editorMode: code
+              instant: true
+              range: false
+              refId: A
+              expr: >-
+                count by (service) (
+                  instance_service:container_memory_working_set_bytes:max offset 1h
+                )
+                unless
+                count by (service) (
+                  instance_service:container_memory_working_set_bytes:max
+                )
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query
+
+      # -------------------------------------------------------------------
+      # Filet complementaire : une cible scrapee ne repond plus.
+      #
+      # Ne couvre que les services exposant des metriques (loki, alloy,
+      # grafana, node-exporter, cadvisor, traefik, pve-exporter), mais
+      # reagit en 5 min la ou la regle precedente attend 10 min.
+      # -------------------------------------------------------------------
+      - uid: cible_prometheus_injoignable
+        title: Cible Prometheus injoignable
+        condition: B
+        for: 5m
+        annotations:
+          summary: >-
+            La cible {{ $labels.instance }} du job {{ $labels.job }} ne repond
+            plus au scrape Prometheus.
+        labels:
+          severity: warning
+        isPaused: false
+        noDataState: OK
+        execErrState: Alerting
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              editorMode: code
+              instant: true
+              range: false
+              refId: A
+              expr: up == 0
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - -1
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query
+
+  # ---------------------------------------------------------------------
+  # Hyperviseurs Proxmox (incident du 29/10/2026) : des builds CI sur la VM
+  # mouse ont sature le NVMe partage, l'hote a decroche (watchdog), puis la
+  # HA a surcharge le survivant jusqu'a l'OOM. Ces regles detectent chaque
+  # maillon de la chaine. Les series pve-unix viennent d'Alloy installe sur
+  # les noeuds ; les metriques id:pve_* des recording rules de pve-rules.yml.
+  # ---------------------------------------------------------------------
+  - orgId: 1
+    name: pve
+    folder: Infra
+    interval: 1m
+    rules:
+      # -------------------------------------------------------------------
+      # Budget N+1 : la RAM configuree des invites HA demarres doit tenir sur
+      # UN seul noeud ZFS (meganode ou supernode) une fois retranchee la
+      # reserve de l'hote (7 GiB : ARC ZFS 3,1 GiB max + noyau + marge).
+      # Sinon, la perte d'un noeud fait basculer la HA sur un survivant qui
+      # ne peut pas tout absorber -> OOM (incident du 29/10/2026).
+      #
+      # La somme surestime un peu : seraph et niobe ne sont jamais sur le
+      # meme noeud (anti-affinite), le pire cas reel est donc plus bas que la
+      # somme. Surestimation volontaire, cote securite. Les noeuds ZFS sont
+      # listes en dur ; mininode (8 Go) ne peut de toute facon pas heberger.
+      # -------------------------------------------------------------------
+      - uid: pve_capacite_ha_n1
+        title: Capacite HA N+1 depassee
+        condition: B
+        for: 10m
+        annotations:
+          summary: >-
+            La RAM configuree des invites HA demarres depasse la capacite d'un seul noeud ZFS moins la reserve hote : un basculement HA risque l'OOM.
+        labels:
+          severity: critical
+        isPaused: false
+        noDataState: OK
+        execErrState: Alerting
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              editorMode: code
+              instant: true
+              range: false
+              refId: A
+              # Les VMs taggees traefik sont en anti-affinite (traefik-apart) : jamais
+              # sur le meme noeud, donc seule la plus grosse compte dans le pire cas
+              expr: >-
+                sum(
+                  id:pve_memory_size_bytes:max
+                  and on(id)
+                  (id:pve_ha_state:max{state="started"} == 1)
+                )
+                -
+                (
+                  min(
+                    id:pve_memory_size_bytes:max
+                    and on(id)
+                    (id:pve_ha_state:max{state="started"} == 1)
+                    and on(id)
+                    id:pve_guest_info:max{tags=~"(.*;)?traefik(;.*)?"}
+                  )
+                  or vector(0)
+                )
+                >
+                (
+                  min(id:pve_memory_size_bytes:max{id=~"node/(meganode|supernode)"})
+                  - 7 * 1024 * 1024 * 1024
+                )
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - -1
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query
+
+      # -------------------------------------------------------------------
+      # Un hyperviseur ne repond plus. Deux signaux croises : l'agent Alloy
+      # du noeud (up) et l'etat du noeud vu par le cluster (pve_up, via
+      # pve-exporter). Un seul suffit : la perte d'un noeud est toujours
+      # grave, et un noeud fige peut repondre encore a l'un des deux.
+      # max by (instance) : une seule alerte par noeud.
+      # -------------------------------------------------------------------
+      - uid: pve_noeud_injoignable
+        title: Hyperviseur injoignable
+        condition: B
+        for: 3m
+        annotations:
+          summary: >-
+            L'hyperviseur {{ $labels.instance }} ne repond plus (agent Alloy ou etat cluster Proxmox).
+        labels:
+          severity: critical
+        isPaused: false
+        noDataState: OK
+        execErrState: Alerting
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              editorMode: code
+              instant: true
+              range: false
+              refId: A
+              expr: >-
+                max by (instance) (
+                  (up{job="pve-unix"} == 0)
+                  or
+                  label_replace(
+                    id:pve_up:max{id=~"node/.*"} == 0,
+                    "instance", "$1", "id", "node/(.*)"
+                  )
+                )
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - -1
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query
+
+      # -------------------------------------------------------------------
+      # Une ressource HA n'est ni demarree ni volontairement arretee :
+      # error, fence, recovery, freeze, migrate, relocate ou request_start.
+      # 5 min laissent passer une migration normale.
+      # -------------------------------------------------------------------
+      - uid: pve_ha_ressource_bloquee
+        title: Ressource HA bloquee
+        condition: B
+        for: 5m
+        annotations:
+          summary: >-
+            La ressource HA {{ $labels.id }} est dans l'etat {{ $labels.state }} depuis plus de 5 minutes.
+        labels:
+          severity: critical
+        isPaused: false
+        noDataState: OK
+        execErrState: Alerting
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              editorMode: code
+              instant: true
+              range: false
+              refId: A
+              expr: >-
+                id:pve_ha_state:max{id=~"qemu/.*|lxc/.*", state!~"started|stopped|request_stop"} == 1
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - -1
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query
+
+      # -------------------------------------------------------------------
+      # Pression I/O soutenue sur l'hote (PSI "full" : plus aucune tache ne
+      # progresse). Pendant l'incident du 29/10, les VMs ont vu 53 a 86 % de
+      # pression I/O et l'hote a fini par decrocher (watchdog). 30 % pendant
+      # 5 min est largement anormal pour un NVMe seul ; sur les VMs le max
+      # sur 7 jours atteint 0,59 mais pendant l'incident. Seuil a recalibrer
+      # une fois l'historique pve-unix disponible.
+      # -------------------------------------------------------------------
+      - uid: pve_psi_io_hote
+        title: Pression I/O hyperviseur
+        condition: B
+        for: 5m
+        annotations:
+          summary: >-
+            L'hyperviseur {{ $labels.instance }} subit une pression I/O soutenue (plus de 30 % du temps bloque sur le disque).
+        labels:
+          severity: critical
+        isPaused: false
+        noDataState: OK
+        execErrState: Alerting
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              editorMode: code
+              instant: true
+              range: false
+              refId: A
+              expr: >-
+                rate(node_pressure_io_stalled_seconds_total{job="pve-unix"}[5m]) > 0.3
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - -1
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query
+
+      # -------------------------------------------------------------------
+      # Pression memoire soutenue (PSI "full"). Sur les VMs Swarm le max sur
+      # 7 jours est de 0,013 : 5 % pendant 5 min sur un hote est deja un
+      # signe de reclaim/swap intense.
+      # -------------------------------------------------------------------
+      - uid: pve_psi_memoire_hote
+        title: Pression memoire hyperviseur
+        condition: B
+        for: 5m
+        annotations:
+          summary: >-
+            L'hyperviseur {{ $labels.instance }} subit une pression memoire soutenue (reclaim ou swap).
+        labels:
+          severity: warning
+        isPaused: false
+        noDataState: OK
+        execErrState: Alerting
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              editorMode: code
+              instant: true
+              range: false
+              refId: A
+              expr: >-
+                rate(node_pressure_memory_stalled_seconds_total{job="pve-unix"}[5m]) > 0.05
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - -1
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query
+
+      # -------------------------------------------------------------------
+      # MemAvailable sous 10 % de la RAM. L'ARC ZFS n'est pas compte comme
+      # disponible par le noyau : la marge reelle est un peu meilleure.
+      # mininode (8 Go, saturee) tourne a environ 19 % : le seuil laisse peu
+      # de marge, mais c'est precisement ce qu'on veut surveiller.
+      # -------------------------------------------------------------------
+      - uid: pve_memoire_disponible_basse
+        title: Memoire hyperviseur presque epuisee
+        condition: B
+        for: 5m
+        annotations:
+          summary: >-
+            L'hyperviseur {{ $labels.instance }} a moins de 10 % de memoire disponible.
+        labels:
+          severity: critical
+        isPaused: false
+        noDataState: OK
+        execErrState: Alerting
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              editorMode: code
+              instant: true
+              range: false
+              refId: A
+              expr: >-
+                node_memory_MemAvailable_bytes{job="pve-unix"} / node_memory_MemTotal_bytes{job="pve-unix"} < 0.10
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - -1
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query
+
+      # -------------------------------------------------------------------
+      # Le noyau de l'hote a tue un processus (souvent un qemu, donc une VM).
+      # Pas de duree : un seul evenement suffit. increase() sur 10 min garde
+      # l'alerte active le temps qu'elle soit vue.
+      # -------------------------------------------------------------------
+      - uid: pve_oom_kill_hote
+        title: OOM kill sur hyperviseur
+        condition: B
+        for: 0s
+        annotations:
+          summary: >-
+            Le noyau de l'hyperviseur {{ $labels.instance }} a declenche un OOM kill durant les 10 dernieres minutes.
+        labels:
+          severity: critical
+        isPaused: false
+        noDataState: OK
+        execErrState: Alerting
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              editorMode: code
+              instant: true
+              range: false
+              refId: A
+              expr: >-
+                increase(node_vmstat_oom_kill{job="pve-unix"}[10m]) > 0
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - -1
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query
+
+  # ---------------------------------------------------------------------
+  # Heartbeat vers le dead man's switch Gatus du VPS (status.macopla.com).
+  #
+  # Regle toujours en alerte, routee par le label heartbeat=true vers le
+  # point de contact gatus-heartbeat (grafana-alerting.yml) et nulle part
+  # ailleurs. Chaque notification prouve que la chaine evaluation ->
+  # Alertmanager -> notification fonctionne ; si elles cessent, Gatus
+  # alerte sur ntfy.sh.
+  #
+  # noDataState et execErrState a OK : Prometheus muet ou injoignable doit
+  # couper le heartbeat. Les autres valeurs creeraient des alertes
+  # DatasourceNoData/DatasourceError portant le label heartbeat=true, qui
+  # continueraient d'alimenter Gatus.
+  # ---------------------------------------------------------------------
+  - orgId: 1
+    name: heartbeat
+    folder: Infra
+    interval: 1m
+    rules:
+      - uid: heartbeat_gatus
+        title: Heartbeat Gatus
+        condition: B
+        for: 0s
+        annotations:
+          summary: >-
+            Heartbeat permanent vers Gatus, ne pas couper.
+        labels:
+          heartbeat: "true"
+        isPaused: false
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              editorMode: code
+              instant: true
+              range: false
+              refId: A
+              expr: up{job="prometheus"}
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query

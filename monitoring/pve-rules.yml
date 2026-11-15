@@ -1,0 +1,82 @@
+---
+# Recording rules Proxmox
+# Les 3 cibles du job "pve" renvoient chacune la vue complete du cluster :
+# `max without (instance)` fusionne ces copies identiques.
+# Nommage : convention niveau:metrique:operation.
+
+groups:
+  - name: pve_dedup
+    interval: 30s
+    rules:
+      # Etat et disponibilite
+      - record: id:pve_up:max
+        expr: max without (instance) (pve_up)
+      - record: id:pve_uptime_seconds:max
+        expr: max without (instance) (pve_uptime_seconds)
+
+      # CPU
+      - record: id:pve_cpu_usage_ratio:max
+        expr: max without (instance) (pve_cpu_usage_ratio)
+      - record: id:pve_cpu_usage_limit:max
+        expr: max without (instance) (pve_cpu_usage_limit)
+
+      # Memoire
+      - record: id:pve_memory_usage_bytes:max
+        expr: max without (instance) (pve_memory_usage_bytes)
+      - record: id:pve_memory_size_bytes:max
+        expr: max without (instance) (pve_memory_size_bytes)
+
+      # Disques
+      - record: id:pve_disk_usage_bytes:max
+        expr: max without (instance) (pve_disk_usage_bytes)
+      - record: id:pve_disk_size_bytes:max
+        expr: max without (instance) (pve_disk_size_bytes)
+      - record: id:pve_disk_read_bytes_total:max
+        expr: max without (instance) (pve_disk_read_bytes_total)
+      - record: id:pve_disk_written_bytes_total:max
+        expr: max without (instance) (pve_disk_written_bytes_total)
+
+      # Reseau
+      - record: id:pve_network_receive_bytes_total:max
+        expr: max without (instance) (pve_network_receive_bytes_total)
+      - record: id:pve_network_transmit_bytes_total:max
+        expr: max without (instance) (pve_network_transmit_bytes_total)
+
+      # Metriques d'information
+      - record: id:pve_node_info:max
+        expr: max without (instance) (pve_node_info)
+      - record: id:pve_guest_info:max
+        expr: max without (instance) (pve_guest_info)
+      - record: id:pve_storage_info:max
+        expr: max without (instance) (pve_storage_info)
+      - record: id:pve_cluster_info:max
+        expr: max without (instance) (pve_cluster_info)
+
+      # Sauvegardes et haute disponibilite
+      - record: id:pve_not_backed_up_total:max
+        expr: max without (instance) (pve_not_backed_up_total)
+      - record: id:pve_not_backed_up_info:max
+        expr: max without (instance) (pve_not_backed_up_info)
+      - record: id:pve_ha_state:max
+        expr: max without (instance) (pve_ha_state)
+
+  - name: pve_derive
+    interval: 30s
+    rules:
+      # RAM des invites : mesuree de l'interieur (node-exporter) pour les VMs,
+      # la vue Proxmox comptant le cache disque comme utilise. Repli sur
+      # Proxmox pour les LXC et les VMs sans node-exporter.
+      # Utiliser les series dedupliquees : sur les brutes, label_replace
+      # produit des labelsets identiques que Prometheus rejette.
+      - record: id:pve_guest_memory_usage:ratio
+        expr: >
+          max by (id) (
+            (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)
+            * on(instance) group_left(id)
+            label_replace(id:pve_guest_info:max{type="qemu", template="0"}, "instance", "$1", "name", "(.*)")
+          )
+          or
+          max by (id) (
+            (id:pve_memory_usage_bytes:max / id:pve_memory_size_bytes:max)
+            and on(id) id:pve_guest_info:max{template="0"}
+          )
