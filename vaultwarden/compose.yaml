@@ -18,6 +18,7 @@ services:
             SIGNUPS_ALLOWED: 'false'
             WEBSOCKET_ENABLED: 'true'
             ADMIN_TOKEN_FILE: /run/secrets/vaultwarden_admin_token
+            DATABASE_URL_FILE: /run/configs/db_url
             SSO_ENABLED: 'true'
             SSO_AUTHORITY: https://auth.macopla.com/application/o/vault/
             SSO_CLIENT_ID: G5Vz8fr5Xm1TyLYcYmRbRHGTksts04qiSlpWp6as
@@ -27,9 +28,10 @@ services:
             SSO_CLIENT_CACHE_EXPIRATION: 0
             SSO_ONLY: 'false'
             SSO_SIGNUPS_MATCH_EMAIL: 'true'
-        secrets: [vaultwarden_admin_token, vaultwarden_sso_secret]
         volumes: ['vaultwarden_data:/data', {type: tmpfs, target: /tmp}]
-        networks: [traefik-wan]
+        configs: [{source: database_url, target: /run/configs/db_url}]
+        secrets: [vaultwarden_admin_token, vaultwarden_sso_secret, vaultwarden_db_password]
+        networks: [traefik-wan, vaultwarden-net]
         deploy:
             !!merge <<: *deploy
             resources: {limits: {memory: 128M}}
@@ -63,6 +65,9 @@ services:
 volumes:
     vaultwarden_data: {driver_opts: {type: none, o: bind, device: /data/vaultwarden}}
     vaultwarden_db: {driver_opts: {type: none, o: bind, device: /data/vaultwarden/db}}
+
+configs:
+    database_url: {name: vaultwarden_db_url_v1, file: ./db_url.tmpl, template_driver: golang}
 
 secrets:
     vaultwarden_admin_token: {external: true}
