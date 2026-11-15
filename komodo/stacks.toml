@@ -173,23 +173,6 @@ WIREGUARD_PRIVATE_KEY=[[seedbox_wg_priv_key]]
 ##
 
 [[stack]]
-name        = "semaphore"
-description = "Service d'orchestration de l'IaC"
-tags        = ["stack"]
-[stack.config]
-swarm = "Prod Swarm"
-poll_for_updates = true
-linked_repo = "homelab"
-run_directory = "stacks/semaphore"
-registry_provider = "registry.gitlab.com/atilili/homelab"
-registry_account = "atilil"
-environment = """
-SEMAPHORE_OIDC_SECRET=[[semaphore_oidc_secret]]
-"""
-
-##
-
-[[stack]]
 name        = "tracearr"
 description = "Service de monitoring pour Jellyfin et Plex"
 tags        = ["stack"]
