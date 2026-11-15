@@ -10,6 +10,13 @@
         "altran1502/immich-*"
       ],
       "groupName": "immich"
+    },
+    {
+      "description": "qBittorent : ignorer les vieux tags 14.x et 20.x restés sur Docker Hub",
+      "matchPackageNames": [
+        "linuxserver/qbittorrent"
+      ],
+      "allowedVersions": "<10"
     }
   ]
 }
