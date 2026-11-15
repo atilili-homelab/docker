@@ -66,5 +66,5 @@ configs:
     static: {name: traefik_static_v1, file: ./traefik.yml}
 
 secrets:
-    traefik_cloudflare_api_token: {external: true}
+    traefik_cloudflare_api_token: {name: traefik_cloudflare_api_token_v1, external: true}
     crowdsec_bouncer_key_traefik: {external: true}
