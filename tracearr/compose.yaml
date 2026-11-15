@@ -27,6 +27,7 @@ services:
             OIDC_CLIENT_ID: tracearr
             OIDC_CLIENT_SECRET_FILE: /run/secrets/tracearr_oidc_client_secret
             OIDC_PROVIDER_NAME: Macopla-SSO
+            TRUST_PROXY: '1'
         volumes: ['tracearr_data:/data/tracearr', 'tracearr_backup:/data/backup']
         configs:
         - {source: tracearr_db_url, target: /run/configs/tracearr_db_url}
