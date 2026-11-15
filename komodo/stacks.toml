@@ -137,20 +137,13 @@ config_files = [
 
 ##
 [[stack]]
-name        = "ntfy"
+name        = "notify"
 description = "Service de notification"
 tags        = ["stack"]
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
-run_directory = "stacks/ntfy"
-environment = """
-#ADMIN_PASSWORD=[[ntfy_admin_password]]
-DB_HOST=[[db_host]]
-DB_PASSWORD=[[ntfy_db_password]]
-PRIVATE_KEY=[[ntfy_private_key]]
-PUBLIC_KEY=[[ntfy_public_key]]
-"""
+swarm         = "Prod Swarm"
+linked_repo   = "docker"
+run_directory = "notify"
 
 ##
 

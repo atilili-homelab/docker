@@ -1,0 +1,94 @@
+x-deploy: &deploy
+    placement: {constraints: [node.labels.tier == apps]}
+    resources: {limits: {memory: 256M}}
+    update_config: {delay: 10s, order: start-first, failure_action: rollback}
+    rollback_config: {order: start-first}
+
+x-healthcheck: &healthcheck
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 20s
+
+services:
+    ntfy:
+        image: binwiederhier/ntfy:v2.28@sha256:6ef4b819f722fccdc036af611c4774cfdc2de821ab74fdd48bbf4c9d6f8973da
+        entrypoint: [/file-env.sh, ntfy]
+        command: [serve]
+        env_file: [./ntfy.env]
+        environment:
+            PGPASSWORD_FILE: /run/secrets/ntfy_db_password
+            NTFY_WEB_PUSH_PUBLIC_KEY_FILE: /run/secrets/ntfy_public_key
+            NTFY_WEB_PUSH_PRIVATE_KEY_FILE: /run/secrets/ntfy_private_key
+        volumes: ['ntfy_attachments:/var/cache/ntfy/attachments']
+        configs: [{source: file_env, target: /file-env.sh, mode: 0555}]
+        secrets: [ntfy_db_password, ntfy_public_key, ntfy_private_key]
+        networks: [traefik-wan, ntfy-net]
+        deploy:
+            !!merge <<: *deploy
+            labels:
+                traefik.enable: 'true'
+                traefik.swarm.network: traefik-wan
+                traefik.http.routers.ntfy.rule: Host(`ntfy.macopla.com`)
+                traefik.http.services.ntfy.loadbalancer.server.port: 80
+        healthcheck:
+            !!merge <<: *healthcheck
+            test: [CMD-SHELL, 'wget -q --tries=1 http://localhost:80/v1/health -O - | grep -Eo ''"healthy"\s*:\s*true'' || exit 1']
+
+    apprise:
+        image: caronc/apprise:v1.5.4@sha256:c5ea17408c10fd84c8fdb05a421114a1a677b16343c274bf9b1a55701b530829
+        environment:
+            TZ: Europe/Paris
+            APPRISE_STATEFUL_MODE: simple
+            APPRISE_WORKER_COUNT: 1
+            APPRISE_ADMIN: n
+        volumes: ['apprise_config:/config', 'apprise_attach:/attach']
+        networks: [traefik-lan, ntfy-net]
+        deploy:
+            !!merge <<: *deploy
+            labels:
+                traefik.enable: 'true'
+                traefik.swarm.network: traefik-lan
+                traefik.http.routers.apprise.rule: Host(`apprise.macopla.com`)
+                traefik.http.services.apprise.loadbalancer.server.port: 8000
+                traefik.http.routers.apprise.middlewares: lan@file
+        healthcheck:
+            !!merge <<: *healthcheck
+            test: [CMD-SHELL, 'curl -fsS http://127.0.0.1:8000/status >/dev/null || exit 1']
+
+    ntfy-db:
+        image: postgres:18.6-trixie@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
+        environment:
+            POSTGRES_USER: ntfy
+            POSTGRES_DB: ntfy
+            POSTGRES_PASSWORD_FILE: /run/secrets/ntfy_db_password
+        secrets: [ntfy_db_password]
+        volumes: ['ntfy_db:/var/lib/postgresql']
+        networks: [ntfy-net]
+        deploy:
+            placement: {constraints: [node.labels.tier == database]}
+            update_config: {order: stop-first, failure_action: rollback}
+            rollback_config: {order: stop-first}
+            resources: {limits: {memory: 256M}}
+        healthcheck:
+            !!merge <<: *healthcheck
+            test: [CMD-SHELL, 'pg_isready -U ntfy -d ntfy']
+
+volumes:
+    ntfy_attachments: {driver_opts: {type: none, o: bind, device: /data/ntfy/attachments}}
+    ntfy_db: {driver_opts: {type: none, o: bind, device: /data/ntfy/db}}
+    apprise_config: {driver_opts: {type: none, o: bind, device: /data/apprise/config}}
+    apprise_attach: {driver_opts: {type: none, o: bind, device: /data/apprise/attachments}}
+
+configs:
+    file_env: {name: ntfy_file_env_v1, file: ../_shared/file-env.sh}
+
+secrets:
+    ntfy_db_password: {external: true}
+    ntfy_public_key: {external: true}
+    ntfy_private_key: {external: true}
+
+networks:
+    traefik-wan: {external: true}
+    traefik-lan: {external: true}
+    ntfy-net: {driver: overlay}
