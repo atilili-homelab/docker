@@ -164,8 +164,8 @@ description = "Service de gestion de seedbox"
 tags        = ["stack"]
 [stack.config]
 server = "merovingian"
-linked_repo = "homelab"
-run_directory = "stacks/seedbox"
+linked_repo = "docker"
+run_directory = "seedbox"
 environment = """
 WIREGUARD_PRIVATE_KEY=[[seedbox_wg_priv_key]]
 """
