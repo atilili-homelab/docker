@@ -51,7 +51,7 @@ services:
                 traefik.swarm.network: traefik-lan
                 traefik.http.routers.apprise.rule: Host(`apprise.macopla.com`)
                 traefik.http.services.apprise.loadbalancer.server.port: 8000
-                traefik.http.routers.apprise.middlewares: lan@file
+                traefik.http.routers.apprise.middlewares: lan-sso@file
         healthcheck:
             !!merge <<: *healthcheck
             test: [CMD-SHELL, 'curl -fsS http://127.0.0.1:8000/status >/dev/null || exit 1']
