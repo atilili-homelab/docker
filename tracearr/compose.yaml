@@ -1,0 +1,89 @@
+x-deploy: &deploy
+    update_config: {delay: 10s, failure_action: rollback, order: stop-first}
+    rollback_config: {delay: 10s, order: stop-first}
+    restart_policy: {delay: 30s}
+
+x-healthcheck: &healthcheck
+    interval: 30s
+    timeout: 10s
+    start_period: 30s
+    retries: 3
+
+services:
+    tracearr:
+        image: ghcr.io/connorgallopo/tracearr:2.6.1@sha256:4c4afa7b453a4a9efceccb9e3f48e57a88abaf8ef2e207abf0099fdac4c71aa4
+        environment:
+            TZ: Europe/Paris
+            LOG_LEVEL: info
+            DATABASE_URL_FILE: /run/configs/tracearr_db_url
+            REDIS_URL: redis://tracearr-redis:6379
+            REDIS_PREFIX: tracearr
+            JWT_SECRET_FILE: /run/secrets/tracearr_jwt_secret
+            COOKIE_SECRET_FILE: /run/secrets/tracearr_cookie_secret
+            CORS_ORIGIN: https://tracearr.macopla.com
+        volumes: ['tracearr_data:/data/tracearr', 'tracearr_backup:/data/backup']
+        configs: [{source: tracearr_db_url, target: /run/configs/tracearr_db_url}]
+        secrets: [tracearr_db_password, tracearr_jwt_secret, tracearr_cookie_secret]
+        networks: [traefik-wan, tracearr-net]
+        healthcheck:
+            !!merge <<: *healthcheck
+            test: wget --no-verbose --tries=1 --spider http://127.0.0.1:3000 || exit 1
+        deploy:
+            !!merge <<: *deploy
+            placement: {constraints: [node.labels.tier == media]}
+            resources: {limits: {memory: 512M}}
+            labels:
+                traefik.enable: 'true'
+                traefik.swarm.network: traefik-wan
+                traefik.http.routers.tracearr.rule: Host(`tracearr.macopla.com`)
+                traefik.http.services.tracearr.loadbalancer.server.port: 3000
+
+    tracearr-db:
+        image: timescale/timescaledb-ha:pg18.3-ts2.26.1@sha256:8bc847c61ebbf7333c219565fd3546c78f1f30597e31bda17a720078929d7a0d
+        command: postgres -c timescaledb.max_tuples_decompressed_per_dml_transaction=0 -c max_locks_per_transaction=4096
+        environment:
+            POSTGRES_USER: tracearr
+            POSTGRES_DB: tracearr
+            POSTGRES_PASSWORD_FILE: /run/secrets/tracearr_db_password
+            PGDATA: /home/postgres/pgdata/data
+        secrets: [tracearr_db_password]
+        volumes: ['tracearr_db:/home/postgres/pgdata/data']
+        networks: [tracearr-net]
+        deploy:
+            !!merge <<: *deploy
+            placement: {constraints: [node.labels.tier == database]}
+            resources: {limits: {memory: 1G}}
+        healthcheck:
+            !!merge <<: *healthcheck
+            test: ['CMD-SHELL', 'pg_isready -U tracearr -d tracearr']
+
+    tracearr-redis:
+        image: redis:8-alpine@sha256:3811787313eba226a2ef38658c6ccb91cd5e110edc89c37767de373120a0e5a0
+        command: redis-server --appendonly yes
+        volumes: ['tracearr_redis:/data']
+        networks: [tracearr-net]
+        deploy:
+            !!merge <<: *deploy
+            placement: {constraints: [node.labels.tier == database]}
+            resources: {limits: {memory: 256M}}
+        healthcheck:
+            !!merge <<: *healthcheck
+            test: ['CMD-SHELL', 'redis-cli ping | grep -q PONG']
+
+volumes:
+    tracearr_data: {driver_opts: {type: none, o: bind, device: /data/tracearr/data}}
+    tracearr_backup: {driver_opts: {type: none, o: bind, device: /data/tracearr/backups}}
+    tracearr_db: {driver_opts: {type: none, o: bind, device: /data/tracearr/db}}
+    tracearr_redis: {driver_opts: {type: none, o: bind, device: /data/tracearr/redis}}
+
+configs:
+    tracearr_db_url: {name: tracearr_db_url_v1, file: ./database_url.tmpl, template_driver: golang}
+
+secrets:
+    tracearr_db_password: {name: tracearr_db_password_v1, external: true}
+    tracearr_jwt_secret: {name: tracearr_jwt_secret_v1, external: true}
+    tracearr_cookie_secret: {name: tracearr_cookie_secret_v1, external: true}
+
+networks:
+    traefik-wan: {external: true}
+    tracearr-net: {driver: overlay}

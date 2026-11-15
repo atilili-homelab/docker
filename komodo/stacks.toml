@@ -177,15 +177,9 @@ name        = "tracearr"
 description = "Service de monitoring pour Jellyfin et Plex"
 tags        = ["stack"]
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "homelab"
-run_directory = "stacks/tracearr"
-environment = """
-DB_PASSWORD=[[tracearr_db_password]]
-JWT_SECRET=[[tracearr_jwt_secret]]
-COOKIE_SECRET=[[tracearr_cookie_secret]]
-REDIS_PASSWORD=[[redis_password]]
-"""
+swarm         = "Prod Swarm"
+linked_repo   = "docker"
+run_directory = "tracearr"
 
 ##
 
