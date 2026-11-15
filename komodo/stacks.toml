@@ -215,8 +215,8 @@ description = "Service de gestion de mots de passe"
 tags        = ["stack"]
 [stack.config]
 swarm         = "Prod Swarm"
-linked_repo   = "homelab"
-run_directory = "stacks/vaultwarden"
+linked_repo   = "docker"
+run_directory = "vaultwarden"
 
 ##
 

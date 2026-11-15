@@ -1,0 +1,48 @@
+services:
+    vaultwarden:
+        image: vaultwarden/server:1.37.3@sha256:1587c45feaa479f1f5e8af3b00eded36bff77bcf1880cf8dbf0541706dd470e0
+        read_only: true
+        environment:
+            TZ: Europe/Paris
+            DOMAIN: https://vault.macopla.com
+            SIGNUPS_ALLOWED: 'false'
+            WEBSOCKET_ENABLED: 'true'
+            ADMIN_TOKEN_FILE: /run/secrets/vaultwarden_admin_token
+            SSO_ENABLED: 'true'
+            SSO_AUTHORITY: https://auth.macopla.com/application/o/vault/
+            SSO_CLIENT_ID: G5Vz8fr5Xm1TyLYcYmRbRHGTksts04qiSlpWp6as
+            SSO_CLIENT_SECRET_FILE: /run/secrets/vaultwarden_sso_secret
+            SSO_SCOPES: openid email profile offline_access
+            SSO_ALLOW_UNKNOWN_EMAIL_VERIFICATION: 'false'
+            SSO_CLIENT_CACHE_EXPIRATION: 0
+            SSO_ONLY: 'false'
+            SSO_SIGNUPS_MATCH_EMAIL: 'true'
+        secrets: [vaultwarden_admin_token, vaultwarden_sso_secret]
+        volumes: ['vaultwarden_data:/data', {type: tmpfs, target: /tmp}]
+        networks: [traefik-wan]
+        healthcheck:
+            test: curl -f http://127.0.0.1:80/alive || exit 1
+            interval: 30s
+            timeout: 10s
+            start_period: 10s
+            retries: 3
+        deploy:
+            update_config: {failure_action: rollback, order: stop-first}
+            restart_policy: {delay: 10s, window: 120s}
+            resources: {limits: {memory: 128M}}
+            placement: {constraints: [node.labels.tier == infra]}
+            labels:
+                traefik.enable: 'true'
+                traefik.swarm.network: traefik-wan
+                traefik.http.routers.vaultwarden.rule: Host(`vault.macopla.com`)
+                traefik.http.services.vaultwarden.loadbalancer.server.port: 80
+
+volumes:
+    vaultwarden_data: {driver_opts: {type: none, o: bind, device: /data/vaultwarden}}
+
+secrets:
+    vaultwarden_admin_token: {external: true}
+    vaultwarden_sso_secret: {external: true}
+
+networks:
+    traefik-wan: {external: true}
