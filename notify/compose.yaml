@@ -1,14 +1,9 @@
 x-deploy: &deploy
     placement: {constraints: [node.labels.tier == apps]}
     resources: {limits: {memory: 256M}}
-    update_config: {delay: 10s, order: start-first, failure_action: rollback}
+    update_config: {order: start-first, failure_action: rollback}
     rollback_config: {order: start-first}
-
-x-healthcheck: &healthcheck
-    interval: 30s
-    timeout: 5s
-    retries: 3
-    start_period: 20s
+    restart_policy: {delay: 10s}
 
 services:
     ntfy:
@@ -32,7 +27,8 @@ services:
                 traefik.http.routers.ntfy.rule: Host(`ntfy.macopla.com`)
                 traefik.http.services.ntfy.loadbalancer.server.port: 80
         healthcheck:
-            !!merge <<: *healthcheck
+            timeout: 5s
+            start_period: 20s
             test: [CMD-SHELL, 'wget -q --tries=1 http://localhost:80/v1/health -O - | grep -Eo ''"healthy"\s*:\s*true'' || exit 1']
 
     apprise:
@@ -52,9 +48,7 @@ services:
                 traefik.http.routers.apprise.rule: Host(`apprise.macopla.com`)
                 traefik.http.services.apprise.loadbalancer.server.port: 8000
                 traefik.http.routers.apprise.middlewares: lan-sso@file
-        healthcheck:
-            !!merge <<: *healthcheck
-            test: [CMD-SHELL, 'curl -fsS http://127.0.0.1:8000/status >/dev/null || exit 1']
+        healthcheck: {test: [CMD-SHELL, 'curl -fsS http://127.0.0.1:8000/status >/dev/null || exit 1'], timeout: 5s, start_period: 20s}
 
     ntfy-db:
         image: postgres:18.7-trixie@sha256:2ea8630df176ad090ec92136dee850397c5af8781e4bcf2e4162593691c61bbc
@@ -68,11 +62,9 @@ services:
         deploy:
             placement: {constraints: [node.labels.tier == database]}
             update_config: {order: stop-first, failure_action: rollback}
-            rollback_config: {order: stop-first}
+            restart_policy: {delay: 10s}
             resources: {limits: {memory: 256M}}
-        healthcheck:
-            !!merge <<: *healthcheck
-            test: [CMD-SHELL, 'pg_isready -U ntfy -d ntfy']
+        healthcheck: {test: [CMD-SHELL, 'pg_isready -U ntfy -d ntfy'], timeout: 5s, start_period: 20s}
 
 volumes:
     ntfy_attachments: {driver_opts: {type: none, o: bind, device: /data/ntfy/attachments}}
