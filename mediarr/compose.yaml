@@ -1,7 +1,5 @@
-x-env_file: &env ./mediarr.env
-x-networks: &net [mediarr-net, mediarr-db, traefik-lan]
+x-env: &env {TZ: Europe/Paris, PUID: '1000', PGID: '1000'}
 x-lan: &lan {traefik.enable: 'true', traefik.swarm.network: traefik-lan}
-x-wan: &wan {traefik.enable: 'true', traefik.swarm.network: traefik-wan}
 
 x-deploy: &deploy
     placement: {constraints: [node.labels.tier == media]}
@@ -46,16 +44,16 @@ services:
 
     prowlarr:
         image: linuxserver/prowlarr:2.6.5.5623-ls162@sha256:f2b26429893d4c4cb71941b7ee50b1bdecd9d5f9f9e02d5410615e9f4f7c8d95
-        env_file: *env
         environment:
-        - PROWLARR__POSTGRES__HOST=mediarr-db
-        - PROWLARR__POSTGRES__USER=prowlarr
-        - PROWLARR__POSTGRES__MAINDB=prowlarr-main
-        - PROWLARR__POSTGRES__LOGDB=prowlarr-log
-        - FILE__PROWLARR__POSTGRES__PASSWORD=/run/secrets/prowlarr_db_password
+            !!merge <<: *env
+            PROWLARR__POSTGRES__HOST: mediarr-db
+            PROWLARR__POSTGRES__USER: prowlarr
+            PROWLARR__POSTGRES__MAINDB: prowlarr-main
+            PROWLARR__POSTGRES__LOGDB: prowlarr-log
+            FILE__PROWLARR__POSTGRES__PASSWORD: /run/secrets/prowlarr_db_password
         secrets: [prowlarr_db_password]
         volumes: ['prowlarr_config:/config']
-        networks: *net
+        networks: [mediarr-net, mediarr-db, traefik-lan]
         deploy:
             !!merge <<: *deploy
             labels:
@@ -70,13 +68,13 @@ services:
         entrypoint: [/file-env.sh, docker-entrypoint.sh]
         command: [npm, start]
         init: true
-        env_file: *env
         environment:
-        - DB_TYPE=postgres
-        - DB_HOST=mediarr-db
-        - DB_NAME=seerr
-        - DB_USER=seerr
-        - DB_PASS_FILE=/run/secrets/seerr_db_password
+            !!merge <<: *env
+            DB_TYPE: postgres
+            DB_HOST: mediarr-db
+            DB_NAME: seerr
+            DB_USER: seerr
+            DB_PASS_FILE: /run/secrets/seerr_db_password
         configs: [{source: file_env, target: /file-env.sh, mode: 0555}]
         volumes: ['seerr_config:/app/config']
         secrets: [seerr_db_password]
@@ -85,14 +83,16 @@ services:
         deploy:
             !!merge <<: *deploy
             labels:
-                !!merge <<: *wan
-                traefik.http.routers.jellyseerr.rule: Host(`seerr.macopla.com`) || Host(`jellyseerr.macopla.com`)
-                traefik.http.services.jellyseerr.loadbalancer.server.port: 5055
+                traefik.enable: 'true'
+                traefik.swarm.network: traefik-wan
+                traefik.http.routers.seerr.rule: Host(`seerr.macopla.com`) || Host(`jellyseerr.macopla.com`)
+                traefik.http.services.seerr.loadbalancer.server.port: 5055
         healthcheck: {!!merge <<: *healthcheck, test: 'wget --no-verbose --tries=1 --spider http://127.0.0.1:5055/api/v1/status || exit 1'}
 
     cinesync:
         image: sureshfizzy/cinesync:v3.2.2-alpha@sha256:36a27b1403e81cb7536e91f7991e2259c136037d0b5bcf0d1688783929b02708
-        env_file: [*env, ./cinesync.env]
+        env_file: [./cinesync.env]
+        environment: *env
         ulimits: {nofile: 65536}
         volumes:
         - cinesync_db:/app/db
@@ -110,14 +110,13 @@ services:
 
     radarrhd:
         image: linuxserver/radarr:6.4.4.10685-ls318@sha256:adb6c09d6b729ea5e642c99cea35af72702ef476bf4763f153299ac5db9f0b4f
-        env_file: *env
         environment:
-            !!merge <<: *radarr
+            !!merge <<: [*env, *radarr]
             RADARR__POSTGRES__MAINDB: radarrhd-main
             RADARR__POSTGRES__LOGDB: radarrhd-log
         volumes: ['radarrhd_config:/config', '/mnt/jellyfin:/mnt/jellyfin']
         secrets: [radarr_db_password]
-        networks: *net
+        networks: [mediarr-net, mediarr-db, traefik-lan]
         deploy:
             !!merge <<: *deploy
             labels:
@@ -129,14 +128,13 @@ services:
 
     radarr4k:
         image: linuxserver/radarr:6.4.4.10685-ls318@sha256:adb6c09d6b729ea5e642c99cea35af72702ef476bf4763f153299ac5db9f0b4f
-        env_file: *env
         environment:
-            !!merge <<: *radarr
+            !!merge <<: [*env, *radarr]
             RADARR__POSTGRES__MAINDB: radarr4k-main
             RADARR__POSTGRES__LOGDB: radarr4k-log
         volumes: ['radarr4k_config:/config', '/mnt/jellyfin:/mnt/jellyfin']
         secrets: [radarr_db_password]
-        networks: *net
+        networks: [mediarr-net, mediarr-db, traefik-lan]
         deploy:
             !!merge <<: *deploy
             labels:
@@ -148,14 +146,13 @@ services:
 
     sonarrhd:
         image: linuxserver/sonarr:4.0.20.3014-ls326@sha256:f247545d23ba8b233d6604575347e48a623fe6ad75dda02348bf81917f3b5c06
-        env_file: *env
         environment:
-            !!merge <<: *sonarr
+            !!merge <<: [*env, *sonarr]
             SONARR__POSTGRES__MAINDB: sonarrhd-main
             SONARR__POSTGRES__LOGDB: sonarrhd-log
         volumes: ['sonarrhd_config:/config', '/mnt/jellyfin:/mnt/jellyfin']
         secrets: [sonarr_db_password]
-        networks: *net
+        networks: [mediarr-net, mediarr-db, traefik-lan]
         deploy:
             !!merge <<: *deploy
             labels:
@@ -167,14 +164,13 @@ services:
 
     sonarr4k:
         image: linuxserver/sonarr:4.0.20.3014-ls326@sha256:f247545d23ba8b233d6604575347e48a623fe6ad75dda02348bf81917f3b5c06
-        env_file: *env
         environment:
-            !!merge <<: *sonarr
+            !!merge <<: [*env, *sonarr]
             SONARR__POSTGRES__MAINDB: sonarr4k-main
             SONARR__POSTGRES__LOGDB: sonarr4k-log
         volumes: ['sonarr4k_config:/config', '/mnt/jellyfin:/mnt/jellyfin']
         secrets: [sonarr_db_password]
-        networks: *net
+        networks: [mediarr-net, mediarr-db, traefik-lan]
         deploy:
             !!merge <<: *deploy
             labels:
@@ -186,16 +182,16 @@ services:
 
     bazarr:
         image: linuxserver/bazarr:v1.5.6-ls342@sha256:9a631194c0dee21c85b5bff59e23610e1ae2f54594e922973949d271102e585e
-        env_file: *env
         environment:
-        - POSTGRES_ENABLED=true
-        - POSTGRES_HOST=mediarr-db
-        - POSTGRES_DATABASE=bazarr
-        - POSTGRES_USERNAME=bazarr
-        - FILE__POSTGRES_PASSWORD=/run/secrets/bazarr_db_password
+            !!merge <<: *env
+            POSTGRES_ENABLED: 'true'
+            POSTGRES_HOST: mediarr-db
+            POSTGRES_DATABASE: bazarr
+            POSTGRES_USERNAME: bazarr
+            FILE__POSTGRES_PASSWORD: /run/secrets/bazarr_db_password
         volumes: ['bazarr_config:/config', '/mnt/jellyfin:/mnt/jellyfin']
         secrets: [bazarr_db_password]
-        networks: *net
+        networks: [mediarr-net, mediarr-db, traefik-lan]
         deploy:
             !!merge <<: *deploy
             labels:
@@ -208,8 +204,7 @@ services:
     recyclarr:
         image: recyclarr/recyclarr:8.8.1@sha256:3e9c41b9ec29bbf65fe846864058730d321a21f7695d8c0d9437b73e34d50ad9
         user: '1000:1000'
-        env_file: *env
-        environment: [CRON_SCHEDULE=@daily]
+        environment: {!!merge <<: *env, CRON_SCHEDULE: '@daily'}
         volumes: ['recyclarr_config:/config']
         configs: [{source: recyclarr, target: /config/recyclarr.yml}]
         secrets: [{source: recyclarr_secrets, target: /config/secrets.yml}]

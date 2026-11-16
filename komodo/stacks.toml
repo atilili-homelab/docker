@@ -131,7 +131,6 @@ swarm = "Prod Swarm"
 linked_repo = "docker"
 run_directory = "mediarr"
 config_files = [
-    { path = "mediarr.env", requires = "Redeploy" },
     { path = "cinesync.env", requires = "Redeploy" },
 ]
 
