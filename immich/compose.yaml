@@ -1,13 +1,7 @@
 x-deploy: &deploy
     update_config: {failure_action: rollback, order: stop-first}
-    restart_policy: {delay: 10s, window: 120s}
+    restart_policy: {delay: 10s}
     resources: {limits: {memory: 1024M}}
-
-x-healthcheck: &healthcheck
-    interval: 30s
-    timeout: 5s
-    retries: 3
-    start_period: 60s
 
 services:
     immich-server:
@@ -19,7 +13,6 @@ services:
             DB_PASSWORD_FILE: /run/secrets/immich_db_password
             DB_DATABASE_NAME: immich
             REDIS_HOSTNAME: immich-redis
-            REDIS_PORT: 6379
             REDIS_PASSWORD_FILE: /run/secrets/immich_redis_password
             IMMICH_CONFIG_FILE: /config/immich.yml
             IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning:3003
@@ -38,9 +31,7 @@ services:
                 traefik.swarm.network: traefik-wan
                 traefik.http.routers.immich.rule: Host(`photo.macopla.com`)
                 traefik.http.services.immich.loadbalancer.server.port: 2283
-        healthcheck:
-            !!merge <<: *healthcheck
-            test: ['CMD', 'immich-healthcheck']
+        healthcheck: {test: [CMD, immich-healthcheck], timeout: 5s, start_period: 60s}
 
     immich-machine-learning:
         image: altran1502/immich-machine-learning:v3.4.1@sha256:8adebf414256f6e4f837bfbb66fa94f14f4da7260e3a1d65cbba49e4e35d8764
@@ -59,7 +50,7 @@ services:
             placement: {constraints: [node.labels.tier == apps]}
 
     immich-redis:
-        image: docker.io/valkey/valkey:9@sha256:3add1a336a920ea54770a001ab6feb3da5fceea96a40373a3a2cd469b815f0b7
+        image: valkey/valkey:9@sha256:3add1a336a920ea54770a001ab6feb3da5fceea96a40373a3a2cd469b815f0b7
         command: /bin/sh -c "valkey-server --requirepass $$(cat /run/secrets/immich_redis_password)"
         secrets: [immich_redis_password]
         volumes: ['immich-redis_redis:/data']
@@ -71,7 +62,8 @@ services:
             placement: {constraints: [node.labels.tier == database]}
             resources: {limits: {memory: 256M}}
         healthcheck:
-            !!merge <<: *healthcheck
+            timeout: 5s
+            start_period: 60s
             test: ['CMD-SHELL', 'valkey-cli -a "$$(cat /run/secrets/immich_redis_password)" --no-auth-warning ping | grep -q PONG']
 
     immich-db:
@@ -89,13 +81,11 @@ services:
         deploy:
             !!merge <<: *deploy
             placement: {constraints: [node.labels.tier == database]}
-        healthcheck:
-            !!merge <<: *healthcheck
-            test: ['CMD-SHELL', 'pg_isready -U immich -d immich']
+        healthcheck: {test: [CMD-SHELL, 'pg_isready -U immich -d immich'], timeout: 5s, start_period: 60s}
 
 volumes:
-    immich-upload: {driver: local, driver_opts: {type: nfs, o: 'addr=nas.macopla.home,nfsvers=4', device: ':/mnt/tank/immich/data/upload'}}
-    immich-ml-cache: {driver: local}
+    immich-upload: {driver_opts: {type: nfs, o: 'addr=nas.macopla.home,nfsvers=4', device: ':/mnt/tank/immich/data/upload'}}
+    immich-ml-cache: {}
     immich-redis_redis: {driver_opts: {type: none, o: bind, device: /data/immich/redis}}
     immich_db: {driver_opts: {type: none, o: bind, device: /data/immich/db}}
 
