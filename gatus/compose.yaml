@@ -2,13 +2,12 @@ services:
     gatus:
         image: twinproduction/gatus:v5.38.0@sha256:085ed63da963728965d00a3c78aa6167e3bf135218485b893201758e079e8415
         restart: unless-stopped
-        user: 1000:1000
+        user: '1000:1000'
         env_file: [/etc/docker-secrets/gatus.env]
-        environment: [TZ=Europe/Paris]
+        environment: {TZ: Europe/Paris}
         configs: [{source: config, target: /config/config.yaml}]
         networks: [proxy]
-        volumes:
-        - gatus-data:/data
+        volumes: ['gatus-data:/data']
         cap_drop: [ALL]
         security_opt: ['no-new-privileges:true']
         deploy: {resources: {limits: {memory: 128M}}}
