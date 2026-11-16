@@ -1,18 +1,8 @@
-x-deploy: &deploy
-    update_config: {failure_action: rollback, order: stop-first}
-    restart_policy: {delay: 10s, window: 120s}
-
-x-healthcheck: &healthcheck
-    interval: 30s
-    timeout: 10s
-    start_period: 10s
-    retries: 3
-
 services:
     vaultwarden:
         image: vaultwarden/server:1.37.5@sha256:4fe17f415f90087377d37c755e0ea3cf189dcc6794e49cdd2a9adbb4937d9e1f
         read_only: true
-        env_file: ./vaultwarden.env
+        env_file: [./vaultwarden.env]
         volumes: ['vaultwarden_data:/data', {type: tmpfs, target: /tmp}]
         configs: [{source: database_url, target: /run/configs/db_url}]
         secrets:
@@ -23,7 +13,8 @@ services:
         - vaultwarden_push_installation_key
         networks: [traefik-wan, vaultwarden-net]
         deploy:
-            !!merge <<: *deploy
+            update_config: {failure_action: rollback, order: stop-first}
+            restart_policy: {delay: 10s}
             resources: {limits: {memory: 128M}}
             placement: {constraints: [node.labels.tier == infra]}
             labels:
@@ -35,12 +26,10 @@ services:
                 traefik.http.routers.vaultwarden-admin.rule: Host(`vault.macopla.com`) && PathPrefix(`/admin`)
                 traefik.http.routers.vaultwarden-admin.middlewares: lan@file
                 traefik.http.routers.vaultwarden-admin.service: vaultwarden
-        healthcheck:
-            !!merge <<: *healthcheck
-            test: curl -f http://127.0.0.1:80/alive || exit 1
+        healthcheck: {test: curl -f http://127.0.0.1:80/alive || exit 1, timeout: 10s, start_period: 10s}
 
     vaultwarden-db:
-        image: postgres:18.7-trixie
+        image: postgres:18.7-trixie@sha256:2ea8630df176ad090ec92136dee850397c5af8781e4bcf2e4162593691c61bbc
         environment:
             POSTGRES_USER: vaultwarden
             POSTGRES_DB: vaultwarden
@@ -49,12 +38,11 @@ services:
         secrets: [vaultwarden_db_password]
         networks: [vaultwarden-net]
         deploy:
-            !!merge <<: *deploy
+            update_config: {failure_action: rollback, order: stop-first}
+            restart_policy: {delay: 10s}
             resources: {limits: {memory: 256M}}
             placement: {constraints: [node.labels.tier == database]}
-        healthcheck:
-            !!merge <<: *healthcheck
-            test: [CMD-SHELL, pg_isready -U vaultwarden -d vaultwarden]
+        healthcheck: {test: [CMD-SHELL, pg_isready -U vaultwarden -d vaultwarden], timeout: 10s, start_period: 10s}
 
 volumes:
     vaultwarden_data: {driver_opts: {type: none, o: bind, device: /data/vaultwarden}}
