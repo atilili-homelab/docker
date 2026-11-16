@@ -1,9 +1,3 @@
-x-deploy: &deploy
-    update_config: {failure_action: rollback, order: stop-first}
-    restart_policy: {delay: 10s}
-
-x-healthcheck: &healthcheck {interval: 30s, timeout: 5s, retries: 3, start_period: 30s}
-
 services:
     socket-proxy:
         image: linuxserver/socket-proxy:3.4.7-r0-ls105@sha256:823dda971e9a3951257eb251586a804199819fe1587c35faa43adc7b52a2ff16
@@ -12,17 +6,17 @@ services:
             TZ: Europe/Paris
             CONTAINERS: 1
             SERVICES: 1
-            EVENTS: 1
             INFO: 1
-            POST: 0
         read_only: true
         networks: [crowdsec-proxy]
         healthcheck:
-            !!merge <<: *healthcheck
             test: wget --no-verbose --tries=1 --spider http://127.0.0.1:2375/version || exit 1
+            timeout: 5s
+            start_period: 30s
         deploy:
-            !!merge <<: *deploy
             mode: global
+            update_config: {failure_action: rollback, order: stop-first, delay: 10s}
+            restart_policy: {delay: 10s}
             resources: {limits: {memory: 32M}}
             placement: {constraints: [node.role == manager]}
 
@@ -52,12 +46,11 @@ services:
         secrets: [crowdsec_db_password, {source: crowdsec_bouncer_key_traefik, target: bouncer_key_traefik}]
         networks: [crowdsec-net, crowdsec-proxy, crowdsec-bouncer]
         deploy:
-            !!merge <<: *deploy
+            update_config: {failure_action: rollback, order: stop-first}
+            restart_policy: {delay: 10s}
             placement: {constraints: [node.labels.tier == infra]}
             resources: {limits: {memory: 320M}}
-        healthcheck:
-            !!merge <<: *healthcheck
-            test: ['CMD', 'cscli', 'lapi', 'status']
+        healthcheck: {test: [CMD, cscli, lapi, status], timeout: 5s, start_period: 30s}
 
     crowdsec-db:
         image: postgres:18.7-trixie@sha256:2ea8630df176ad090ec92136dee850397c5af8781e4bcf2e4162593691c61bbc
@@ -70,10 +63,11 @@ services:
         secrets: [crowdsec_db_password]
         networks: [crowdsec-net]
         deploy:
-            !!merge <<: *deploy
+            update_config: {failure_action: rollback, order: stop-first}
+            restart_policy: {delay: 10s}
             placement: {constraints: [node.labels.tier == database]}
             resources: {limits: {memory: 256M}}
-        healthcheck: {!!merge <<: *healthcheck, test: ['CMD-SHELL', 'pg_isready -U crowdsec']}
+        healthcheck: {test: [CMD-SHELL, 'pg_isready -U crowdsec'], timeout: 5s, start_period: 30s}
 
 volumes:
     config: {driver_opts: {type: none, o: bind, device: /data/crowdsec}}
