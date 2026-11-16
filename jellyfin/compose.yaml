@@ -16,6 +16,7 @@ services:
         - /mnt/jellyfin:/mnt/jellyfin
         # rslave for mergerfs so that the mountpoint is not hidden untill the container is restarted
         - {type: bind, source: /mnt/UNIFIED, target: /mnt/UNIFIED, read_only: true, bind: {propagation: rslave}}
+        networks: [default, ldap-network]
         ports: ['8096:8096']
         healthcheck:
             test: curl -f http://127.0.0.1:8096/health || exit 1
@@ -25,5 +26,5 @@ services:
             retries: 3
         mem_limit: 6G
 
-volumes:
-    jellyfin-cache: {driver: local}
+volumes: {jellyfin-cache: {driver: local}}
+networks: {ldap-network: {external: true}}
