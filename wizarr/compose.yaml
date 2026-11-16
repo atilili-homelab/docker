@@ -1,6 +1,6 @@
 services:
     wizarr:
-        image: ghcr.io/wizarrrr/wizarr:v2026.10.1
+        image: ghcr.io/wizarrrr/wizarr:v2026.10.1@sha256:08f2c6de534ec7d36d39a4f55b7c5c379021ca881dc519c702aad0ddafbdc67a
         environment:
             PUID: 1000
             PGID: 1000
@@ -14,12 +14,7 @@ services:
             PROXY_FIX_1_PREFIX: 1
         volumes: ['wizarr_data:/data']
         networks: [traefik-wan, ldap-network]
-        healthcheck:
-            test: wget --no-verbose --tries=1 --spider http://127.0.0.1:5690 || exit 1
-            interval: 30s
-            timeout: 10s
-            start_period: 30s
-            retries: 3
+        healthcheck: {test: wget --no-verbose --tries=1 --spider http://127.0.0.1:5690 || exit 1, timeout: 10s, start_period: 30s}
         deploy:
             update_config: {failure_action: rollback, order: stop-first}
             restart_policy: {delay: 10s}
