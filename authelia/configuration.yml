@@ -69,6 +69,11 @@ webauthn:
   selection_criteria:
     user_verification: required
 
+duo_api:
+  hostname: api-f32217bc.duosecurity.com
+  integration_key: DIJD0V16ER5WIND5GPIG # gitleaks:allow (id public, secret key is in the vault)
+  enable_self_enrollment: true
+
 identity_providers:
   oidc:
     authorization_policies:
