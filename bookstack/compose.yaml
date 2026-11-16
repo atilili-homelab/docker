@@ -1,22 +1,13 @@
-x-deploy: &deploy
-    update_config: {order: stop-first, failure_action: rollback}
-    restart_policy: {delay: 10s}
-
-x-healthcheck: &healthcheck
-    interval: 30s
-    timeout: 5s
-    retries: 5
-    start_period: 30s
-
 services:
     bookstack:
         image: linuxserver/bookstack:26.09.20260929@sha256:7a6779d345d4d678614aa1a0a8a4d8456aeb98de10dfae700b839c3140c89f39
-        env_file: ./bookstack.env
+        env_file: [./bookstack.env]
         volumes: ['bookstack_config:/config']
         secrets: [bookstack_app_key, bookstack_db_password, bookstack_oidc_client_secret]
         networks: [traefik-wan, bookstack-db-net]
         deploy:
-            !!merge <<: *deploy
+            update_config: {order: stop-first, failure_action: rollback}
+            restart_policy: {delay: 10s}
             labels:
                 traefik.enable: 'true'
                 traefik.swarm.network: traefik-wan
@@ -24,7 +15,7 @@ services:
                 traefik.http.services.bookstack.loadbalancer.server.port: 80
             placement: {constraints: [node.labels.tier == apps]}
             resources: {limits: {memory: 256M}}
-        healthcheck: {!!merge <<: *healthcheck, test: [CMD-SHELL, 'curl -f http://127.0.0.1:80/status']}
+        healthcheck: {test: [CMD-SHELL, 'curl -f http://127.0.0.1:80/status'], timeout: 5s, retries: 5, start_period: 30s}
 
     bookstack-db:
         image: mariadb:13.0@sha256:54f493ea0d60b621a5bff84e5b20100f8b86b6efa6b79158e04756c5194a5e4d
@@ -37,10 +28,11 @@ services:
         secrets: [bookstack_db_password]
         networks: [bookstack-db-net]
         deploy:
-            !!merge <<: *deploy
+            update_config: {order: stop-first, failure_action: rollback}
+            restart_policy: {delay: 10s}
             placement: {constraints: [node.labels.tier == database]}
             resources: {limits: {memory: 520M}}
-        healthcheck: {!!merge <<: *healthcheck, test: [CMD, healthcheck.sh, --connect, --innodb_initialized]}
+        healthcheck: {test: [CMD, healthcheck.sh, --connect, --innodb_initialized], timeout: 5s, retries: 5, start_period: 30s}
 
 volumes:
     bookstack_config: {driver_opts: {type: none, o: bind, device: /data/bookstack}}
