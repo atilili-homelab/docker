@@ -6,7 +6,6 @@ services:
         environment:
             VPN_SERVICE_PROVIDER: protonvpn
             VPN_TYPE: wireguard
-            WIREGUARD_PRIVATE_KEY: ${WIREGUARD_PRIVATE_KEY}
             TZ: Europe/Paris
             SERVER_COUNTRIES: Netherlands,Spain
             PORT_FORWARD_ONLY: on
