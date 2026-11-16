@@ -86,7 +86,7 @@ services:
             !!merge <<: *deploy
             labels:
                 !!merge <<: *wan
-                traefik.http.routers.jellyseerr.rule: Host(`jellyseerr.macopla.com`)
+                traefik.http.routers.jellyseerr.rule: Host(`seerr.macopla.com`) || Host(`jellyseerr.macopla.com`)
                 traefik.http.services.jellyseerr.loadbalancer.server.port: 5055
         healthcheck: {!!merge <<: *healthcheck, test: 'wget --no-verbose --tries=1 --spider http://127.0.0.1:5055/api/v1/status || exit 1'}
 
