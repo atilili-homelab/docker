@@ -12,26 +12,15 @@ services:
     vaultwarden:
         image: vaultwarden/server:1.37.5@sha256:4fe17f415f90087377d37c755e0ea3cf189dcc6794e49cdd2a9adbb4937d9e1f
         read_only: true
-        environment:
-            TZ: Europe/Paris
-            DOMAIN: https://vault.macopla.com
-            SIGNUPS_ALLOWED: 'false'
-            WEBSOCKET_ENABLED: 'true'
-            ADMIN_TOKEN_FILE: /run/secrets/vaultwarden_admin_token
-            DATABASE_URL_FILE: /run/configs/db_url
-            SSO_ENABLED: 'true'
-            SSO_ALLOW_UNKNOWN_EMAIL_VERIFICATION: 'false'
-            SSO_AUTHORITY: https://sso.macopla.com
-            SSO_CLIENT_CACHE_EXPIRATION: 0
-            SSO_CLIENT_ID: vaultwarden
-            SSO_CLIENT_SECRET_FILE: /run/secrets/vaultwarden_oidc_client_secret
-            SSO_ONLY: 'true'
-            SSO_PKCE: 'true'
-            SSO_SCOPES: openid email profile offline_access
-            SSO_SIGNUPS_MATCH_EMAIL: 'true'
+        env_file: ./vaultwarden.env
         volumes: ['vaultwarden_data:/data', {type: tmpfs, target: /tmp}]
         configs: [{source: database_url, target: /run/configs/db_url}]
-        secrets: [vaultwarden_admin_token, vaultwarden_oidc_client_secret, vaultwarden_db_password]
+        secrets:
+        - vaultwarden_admin_token
+        - vaultwarden_oidc_client_secret
+        - vaultwarden_db_password
+        - vaultwarden_smtp_password
+        - vaultwarden_push_installation_key
         networks: [traefik-wan, vaultwarden-net]
         deploy:
             !!merge <<: *deploy
@@ -42,6 +31,10 @@ services:
                 traefik.swarm.network: traefik-wan
                 traefik.http.routers.vaultwarden.rule: Host(`vault.macopla.com`)
                 traefik.http.services.vaultwarden.loadbalancer.server.port: 80
+                # Panneau d'administration : LAN uniquement (règle plus longue, donc prioritaire)
+                traefik.http.routers.vaultwarden-admin.rule: Host(`vault.macopla.com`) && PathPrefix(`/admin`)
+                traefik.http.routers.vaultwarden-admin.middlewares: lan@file
+                traefik.http.routers.vaultwarden-admin.service: vaultwarden
         healthcheck:
             !!merge <<: *healthcheck
             test: curl -f http://127.0.0.1:80/alive || exit 1
@@ -71,9 +64,11 @@ configs:
     database_url: {name: vaultwarden_db_url_v1, file: ./db_url.tmpl, template_driver: golang}
 
 secrets:
-    vaultwarden_admin_token: {external: true}
+    vaultwarden_admin_token: {name: vaultwarden_admin_token_v1, external: true}
     vaultwarden_oidc_client_secret: {name: vaultwarden_oidc_client_secret_v1, external: true}
     vaultwarden_db_password: {name: vaultwarden_db_password_v1, external: true}
+    vaultwarden_smtp_password: {name: vaultwarden_smtp_password_v1, external: true}
+    vaultwarden_push_installation_key: {name: vaultwarden_push_installation_key_v1, external: true}
 
 networks:
     traefik-wan: {external: true}
