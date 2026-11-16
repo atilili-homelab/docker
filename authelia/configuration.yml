@@ -99,6 +99,7 @@ identity_providers:
       - key_id: main
         # prettier-ignore
         key: {{secret "/run/secrets/authelia_oidc_jwks_key" | mindent 10 "|" | msquote}}
+
     clients:
       # BOOKSTACK
       - client_id: bookstack
@@ -107,8 +108,7 @@ identity_providers:
         authorization_policy: "family_friends"
         require_pkce: true
         pkce_challenge_method: S256
-        redirect_uris:
-          - https://wiki.macopla.com/oidc/callback
+        redirect_uris: [https://wiki.macopla.com/oidc/callback]
 
       # FORGEJO
       - client_id: forgejo
@@ -119,10 +119,7 @@ identity_providers:
         pkce_challenge_method: S256
         redirect_uris:
           - https://forge.macopla.com/user/oauth2/authelia/callback
-        scopes:
-          - openid
-          - profile
-          - email
+        scopes: [openid, profile, email]
 
       # IMMICH
       - client_id: immich
@@ -135,10 +132,7 @@ identity_providers:
           - https://photo.macopla.com/auth/login
           - https://photo.macopla.com/user-settings
           - app.immich:///oauth-callback
-        scopes:
-          - openid
-          - profile
-          - email
+        scopes: [openid, profile, email]
 
       # KOMODO
       - client_id: komodo
@@ -147,12 +141,8 @@ identity_providers:
         authorization_policy: "admins"
         require_pkce: true
         pkce_challenge_method: S256
-        redirect_uris:
-          - https://komodo.macopla.com/auth/oidc/callback
-        scopes:
-          - openid
-          - profile
-          - email
+        redirect_uris: [https://komodo.macopla.com/auth/oidc/callback]
+        scopes: [openid, profile, email]
 
       # TRACEARR
       - client_id: tracearr
@@ -164,10 +154,7 @@ identity_providers:
         token_endpoint_auth_method: "client_secret_post"
         redirect_uris:
           - https://tracearr.macopla.com/api/v1/auth/oauth2/callback/oidc
-        scopes:
-          - openid
-          - profile
-          - email
+        scopes: [openid, profile, email]
 
       # VAULTWARDEN
       - client_id: vaultwarden
@@ -176,13 +163,7 @@ identity_providers:
         authorization_policy: "family_only"
         require_pkce: true
         pkce_challenge_method: S256
-        redirect_uris:
-          - https://vault.macopla.com/identity/connect/oidc-signin
-        scopes:
-          - openid
-          - offline_access
-          - profile
-          - email
-        grant_types:
-          - authorization_code
-          - refresh_token
+        response_types: [code]
+        redirect_uris: [https://vault.macopla.com/identity/connect/oidc-signin]
+        scopes: [openid, offline_access, profile, email]
+        grant_types: [authorization_code, refresh_token]

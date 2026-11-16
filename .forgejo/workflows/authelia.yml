@@ -37,5 +37,6 @@ jobs:
             -e AUTHELIA_STORAGE_ENCRYPTION_KEY="x$(printf '%063d' 0)" \
             -e AUTHELIA_STORAGE_POSTGRES_PASSWORD=x \
             -e AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD=x \
+            -e AUTHELIA_DUO_API_SECRET_KEY=x \
             "docker.io/$image" authelia validate-config --config /config/configuration.yml
             rm -r "$secrets"
