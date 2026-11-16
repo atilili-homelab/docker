@@ -1,0 +1,46 @@
+services:
+    wizarr:
+        image: ghcr.io/wizarrrr/wizarr:v2026.10.1
+        environment:
+            PUID: 1000
+            PGID: 1000
+            TZ: Europe/Paris
+            DISABLE_BUILTIN_AUTH: 'false'
+            TRUST_PROXY_HEADERS: 'true'
+            PROXY_FIX_1_FOR: 1
+            PROXY_FIX_1_PROTO: 1
+            PROXY_FIX_1_HOST: 1
+            PROXY_FIX_1_PORT: 1
+            PROXY_FIX_1_PREFIX: 1
+        volumes: ['wizarr_data:/data']
+        networks: [traefik-wan, ldap-network]
+        healthcheck:
+            test: wget --no-verbose --tries=1 --spider http://127.0.0.1:5690 || exit 1
+            interval: 30s
+            timeout: 10s
+            start_period: 30s
+            retries: 3
+        deploy:
+            update_config: {failure_action: rollback, order: stop-first}
+            restart_policy: {delay: 10s}
+            resources: {limits: {memory: 512M}}
+            placement: {constraints: [node.labels.tier == media]}
+            labels:
+                traefik.enable: 'true'
+                traefik.swarm.network: traefik-wan
+                traefik.http.routers.wizarr.rule: Host(`wizarr.macopla.com`)
+                traefik.http.routers.wizarr.middlewares: lan-sso@file
+                traefik.http.services.wizarr.loadbalancer.server.port: 5690
+                traefik.http.routers.wizarr-invite.rule: >-
+                    Host(`wizarr.macopla.com`) && (PathPrefix(`/j/`) ||
+                    Path(`/invitation/process`) ||
+                    PathPrefix(`/wizard`) ||
+                    PathPrefix(`/static/`) ||
+                    Path(`/favicon.ico`))
+
+volumes:
+    wizarr_data: {driver_opts: {type: none, o: bind, device: /data/wizarr}}
+
+networks:
+    traefik-wan: {external: true}
+    ldap-network: {external: true}

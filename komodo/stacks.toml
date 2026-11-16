@@ -226,5 +226,5 @@ description = "Service de gestion d'invitation pour Jellyfin"
 tags        = ["stack"]
 [stack.config]
 swarm         = "Prod Swarm"
-linked_repo   = "homelab"
-run_directory = "stacks/wizarr"
+linked_repo   = "docker"
+run_directory = "wizarr"
