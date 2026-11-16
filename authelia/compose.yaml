@@ -71,7 +71,7 @@ services:
         - lldap_jwt_secret
         - lldap_key_seed
         - lldap_admin_password
-        networks: [authelia-net, traefik-lan]
+        networks: [authelia-net, traefik-lan, ldap-network]
         deploy:
             !!merge <<: *deploy
             labels:
@@ -140,5 +140,6 @@ volumes:
 
 networks:
     authelia-net: {driver: overlay}
+    ldap-network: {name: ldap-network, driver: overlay, attachable: true}
     traefik-lan: {external: true}
     traefik-wan: {external: true}
