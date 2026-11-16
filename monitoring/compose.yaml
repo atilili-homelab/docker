@@ -1,13 +1,13 @@
 x-deploy: &deploy
-    update_config: {delay: 10s, monitor: 3m, failure_action: rollback, order: stop-first}
-    rollback_config: {order: stop-first}
-    restart_policy: {delay: 30s, window: 300s}
+    update_config: {failure_action: rollback, order: stop-first}
+    restart_policy: {delay: 10s}
 
-x-healthcheck: &healthcheck
-    interval: 30s
-    timeout: 10s
-    retries: 5
-    start_period: 30s
+x-global: &global
+    mode: global
+    update_config: {delay: 10s, failure_action: rollback, order: stop-first}
+    restart_policy: {delay: 10s}
+
+x-healthcheck: &healthcheck {timeout: 10s, retries: 5, start_period: 30s}
 
 x-socket-proxy: &socket-proxy
     image: linuxserver/socket-proxy:3.4.7-r0-ls105@sha256:823dda971e9a3951257eb251586a804199819fe1587c35faa43adc7b52a2ff16
@@ -15,7 +15,6 @@ x-socket-proxy: &socket-proxy
     read_only: true
     environment:
         TZ: Europe/Paris
-        POST: 0
         NETWORKS: 1
         SERVICES: 1
         TASKS: 1
@@ -27,29 +26,23 @@ x-socket-proxy: &socket-proxy
     # Alloy interroge le proxy de son propre nœud par l'IP de l'hôte (NODE_FQDN:2378)
     ports: [{target: 2375, published: 2378, mode: host}]
     healthcheck:
-        !!merge <<: *healthcheck
         test: wget --no-verbose --tries=1 --spider http://127.0.0.1:2375/version || exit 1
         timeout: 5s
-        retries: 3
         start_period: 5s
 
 services:
     monitor-socket-proxy-worker:
         !!merge <<: *socket-proxy
         deploy:
-            !!merge <<: *deploy
-            mode: global
+            !!merge <<: *global
             placement: {constraints: [node.role == worker]}
-            restart_policy: {delay: 10s, window: 120s}
             resources: {limits: {memory: 32M}}
 
     monitor-socket-proxy-manager:
         !!merge <<: *socket-proxy
         deploy:
-            !!merge <<: *deploy
-            mode: global
+            !!merge <<: *global
             placement: {constraints: [node.role == manager]}
-            restart_policy: {delay: 10s, window: 120s}
             resources: {limits: {memory: 32M}}
 
     prometheus:
@@ -69,7 +62,7 @@ services:
         stop_grace_period: 2m
         deploy:
             !!merge <<: *deploy
-            update_config: {delay: 10s, monitor: 6m, failure_action: rollback, order: stop-first}
+            update_config: {monitor: 6m, failure_action: rollback, order: stop-first}
             placement: {constraints: [node.labels.tier == monitor]}
             resources: {limits: {memory: 2048M, cpus: '2.0'}, reservations: {memory: 512M}}
             labels:
@@ -102,8 +95,7 @@ services:
         - 'alloy-data:/var/lib/alloy/data'
         networks: [monitoring-net]
         deploy:
-            !!merge <<: *deploy
-            mode: global
+            !!merge <<: *global
             update_config: {delay: 10s, monitor: 1m, failure_action: rollback, order: stop-first}
             resources: {limits: {memory: 320M, cpus: '0.5'}, reservations: {memory: 128M}}
         healthcheck:
@@ -156,7 +148,7 @@ services:
         networks: [monitoring-net, grafana-db-net, traefik-lan]
         deploy:
             !!merge <<: *deploy
-            update_config: {delay: 10s, monitor: 3m, failure_action: rollback, order: start-first}
+            update_config: {monitor: 3m, failure_action: rollback, order: start-first}
             rollback_config: {order: start-first}
             placement: {constraints: [node.labels.tier == monitor]}
             resources: {limits: {memory: 1024M, cpus: '1.0'}, reservations: {memory: 256M}}
@@ -205,8 +197,7 @@ services:
         networks: [monitoring-net]
         ports: [{target: 9100, published: 9100, mode: host}]
         deploy:
-            !!merge <<: *deploy
-            mode: global
+            !!merge <<: *global
             resources: {limits: {memory: 256M}, reservations: {memory: 128M}}
         healthcheck:
             !!merge <<: *healthcheck
@@ -223,8 +214,7 @@ services:
         volumes: ['/:/rootfs:ro', '/var/run:/var/run:ro', '/sys:/sys:ro', '/var/lib/docker/:/var/lib/docker:ro']
         networks: [monitoring-net]
         deploy:
-            !!merge <<: *deploy
-            mode: global
+            !!merge <<: *global
             resources: {limits: {memory: 256M, cpus: '0.5'}, reservations: {memory: 128M}}
         healthcheck:
             !!merge <<: *healthcheck
@@ -236,9 +226,9 @@ configs:
     prometheus_rules_container: {name: monitoring_prometheus_rules_container_v3, file: ./container-rules.yml}
     grafana_datasources: {name: monitoring_grafana_datasources_v2, file: ./grafana-datasources.yml}
     grafana_alerting: {name: monitoring_grafana_alerting_v4, file: ./grafana-alerting.yml}
-    grafana_alert_rules: {name: monitoring_grafana_alert_rules_v3, file: ./grafana-alert-rules.yml}
+    grafana_alert_rules: {name: monitoring_grafana_alert_rules_v4, file: ./grafana-alert-rules.yml}
     loki_config: {name: monitoring_loki_config_v1, file: ./loki.yml}
-    alloy_config: {name: monitoring_alloy_config_v3, file: ./config.alloy}
+    alloy_config: {name: monitoring_alloy_config_v4, file: ./config.alloy}
 
 secrets:
     pve_exporter_config: {external: true}

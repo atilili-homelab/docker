@@ -10,7 +10,7 @@
 # Prometheus n'expose aucune metrique "replicas desires vs actuels" : le
 # socket-proxy sert de dockerswarm_sd_configs (decouverte de cibles), pas de
 # source de metriques Swarm. Et seuls les services exposant des metriques ont
-# une cible `up` — authentik, sonarr ou bookstack n'en ont aucune.
+# une cible `up` — sonarr ou bookstack n'en ont aucune.
 #
 # La seule source universelle est cAdvisor. On s'appuie donc sur les recording
 # rules de container-rules.yml, qui normalisent deja tous les conteneurs

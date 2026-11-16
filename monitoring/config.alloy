@@ -83,7 +83,7 @@ discovery.relabel "containers" {
 
   // 8. Ne conserver que les labels utiles.
   //    discovery.docker émet UNE TARGET PAR RÉSEAU du conteneur : un service
-  //    sur traefik-public + prometheus-net en produit deux, pointant vers le
+  //    sur traefik-lan + monitoring-net en produit deux, pointant vers le
   //    même fichier. Elles ne diffèrent que par leurs labels __meta_docker_network_*
   //    et __address__. En les supprimant, les targets deviennent strictement
   //    identiques et fusionnent, sinon le fichier serait lu deux fois et
