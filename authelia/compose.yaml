@@ -1,6 +1,6 @@
 x-deploy: &deploy
     update_config: {order: stop-first, failure_action: rollback, monitor: 90s}
-    restart_policy: {delay: 10s, window: 120s}
+    restart_policy: {delay: 10s}
 
 x-healthcheck: &healthcheck
     interval: 30s
@@ -40,10 +40,10 @@ services:
         deploy:
             !!merge <<: *deploy
             labels:
-            - traefik.enable=true
-            - traefik.swarm.network=traefik-wan
-            - traefik.http.routers.authelia.rule=Host(`sso.macopla.com`)
-            - traefik.http.services.authelia.loadbalancer.server.port=9091
+                traefik.enable: 'true'
+                traefik.swarm.network: traefik-wan
+                traefik.http.routers.authelia.rule: Host(`sso.macopla.com`)
+                traefik.http.services.authelia.loadbalancer.server.port: 9091
             placement: {constraints: [node.labels.tier == infra]}
             resources: {limits: {memory: 256M}}
         healthcheck:
@@ -75,11 +75,11 @@ services:
         deploy:
             !!merge <<: *deploy
             labels:
-            - traefik.enable=true
-            - traefik.swarm.network=traefik-lan
-            - traefik.http.routers.lldap.rule=Host(`ldap.macopla.com`)
-            - traefik.http.routers.lldap.middlewares=lan@file
-            - traefik.http.services.lldap.loadbalancer.server.port=17170
+                traefik.enable: 'true'
+                traefik.swarm.network: traefik-lan
+                traefik.http.routers.lldap.rule: Host(`ldap.macopla.com`)
+                traefik.http.routers.lldap.middlewares: lan@file
+                traefik.http.services.lldap.loadbalancer.server.port: 17170
             placement: {constraints: [node.labels.tier == infra]}
             resources: {limits: {memory: 128M}}
         healthcheck:
