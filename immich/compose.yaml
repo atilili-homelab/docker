@@ -93,10 +93,10 @@ configs:
     config: {name: immich_config_v1, file: ./config.yml, template_driver: golang}
 
 secrets:
-    immich_db_password: {external: true}
-    immich_redis_password: {external: true}
-    immich_oidc_client_secret: {external: true}
-    immich_smtp_password: {external: true}
+    immich_db_password: {name: immich_db_password_v1, external: true}
+    immich_redis_password: {name: immich_redis_password_v1, external: true}
+    immich_oidc_client_secret: {name: immich_oidc_client_secret_v1, external: true}
+    immich_smtp_password: {name: immich_smtp_password_v1, external: true}
 
 networks:
     traefik-wan: {external: true}
