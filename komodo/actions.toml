@@ -4,7 +4,7 @@ description = "Notifie quand une nouvelle release de Mailcow est publiée"
 tags        = ["action"]
 [action.config]
 schedule_format = "Cron"
-schedule = "0 12 * * *"
+schedule = "0 0 12 * * *"
 schedule_timezone = "Europe/Paris"
 schedule_alert = false
 failure_alert = true
