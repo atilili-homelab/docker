@@ -143,6 +143,15 @@ identity_providers:
         redirect_uris: [https://komodo.macopla.com/auth/oidc/callback]
         scopes: [openid, profile, email]
 
+      # MAILCOW (league/oauth2-client : pas de PKCE, secret envoyé dans le corps)
+      - client_id: mailcow
+        client_name: Mailcow
+        client_secret: "$pbkdf2-sha512$310000$7ofOzkMeZXsJpVnBzC5oDQ$IKrOjRvxozaR249sTQ6/Gaq1qfq7hHuw4YSxREjmitvf64AO5jSNEZOv.LOIfC5GfV1CGaht0m.qamwQVYx4SQ"
+        authorization_policy: "family_only"
+        token_endpoint_auth_method: "client_secret_post"
+        redirect_uris: [https://webmail.macopla.com]
+        scopes: [openid, profile, email]
+
       # TRACEARR
       - client_id: tracearr
         client_name: Tracearr
