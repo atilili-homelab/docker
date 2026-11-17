@@ -119,7 +119,7 @@ tags        = ["stack"]
 server        = "persephone"
 files_on_host = true
 run_directory = "/opt/mailcow-dockerized"
-file_paths    = ["docker-compose.yml"]
+file_paths    = ["docker-compose.yml", "docker-compose.override.yml"]
 project_name  = "mailcowdockerized"
 
 ##
