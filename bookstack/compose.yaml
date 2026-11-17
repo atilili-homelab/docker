@@ -39,7 +39,7 @@ volumes:
     bookstack_db: {driver_opts: {type: none, o: bind, device: /data/bookstack/db}}
 
 secrets:
-    bookstack_db_password: {name: bookstack_db_password_v1, external: true}
+    bookstack_db_password: {name: bookstack_db_password_v2, external: true}
     bookstack_app_key: {name: bookstack_app_key_v1, external: true}
     bookstack_oidc_client_secret: {name: bookstack_oidc_client_secret_v1, external: true}
 
