@@ -20,4 +20,4 @@ services:
             restart_policy: {delay: 10s}
 
 secrets:
-    cloudflare_ddns_api_token: {name: cloudflare_ddns_api_token_v1, external: true}
+    cloudflare_ddns_api_token: {name: cloudflare_ddns_api_token_v2, external: true}
