@@ -14,16 +14,6 @@ config_files = [
 ##
 
 [[stack]]
-name        = "authentik"
-description = "Service d'authentification pour les services du homelab"
-tags        = ["stack"]
-[stack.config]
-swarm         = "Prod Swarm"
-linked_repo   = "homelab"
-run_directory = "stacks/authentik"
-
-##
-[[stack]]
 
 name        = "bookstack"
 description = "Service de gestion de documentation(wiki)"
@@ -127,12 +117,10 @@ name        = "mediarr"
 description = "Services de gestion des médias"
 tags        = ["stack"]
 [stack.config]
-swarm = "Prod Swarm"
-linked_repo = "docker"
+swarm         = "Prod Swarm"
+linked_repo   = "docker"
 run_directory = "mediarr"
-config_files = [
-    { path = "cinesync.env", requires = "Redeploy" },
-]
+config_files  = [{ path = "cinesync.env", requires = "Redeploy" }]
 
 ##
 [[stack]]
@@ -163,8 +151,8 @@ name        = "seedbox"
 description = "Service de gestion de seedbox"
 tags        = ["stack"]
 [stack.config]
-server = "merovingian"
-linked_repo = "docker"
+server        = "merovingian"
+linked_repo   = "docker"
 run_directory = "seedbox"
 
 ##
