@@ -231,13 +231,13 @@ configs:
     recyclarr: {name: mediarr_recyclarr_v1, file: ./recyclarr.yml}
 
 secrets:
-    mediarr_postgres_password: {external: true}
-    seerr_db_password: {external: true}
-    prowlarr_db_password: {external: true}
-    bazarr_db_password: {external: true}
-    radarr_db_password: {external: true}
-    sonarr_db_password: {external: true}
-    recyclarr_secrets: {external: true}
+    mediarr_postgres_password: {name: mediarr_postgres_password_v1, external: true}
+    seerr_db_password: {name: mediarr_seerr_db_password_v1, external: true}
+    prowlarr_db_password: {name: mediarr_prowlarr_db_password_v1, external: true}
+    bazarr_db_password: {name: mediarr_bazarr_db_password_v1, external: true}
+    radarr_db_password: {name: mediarr_radarr_db_password_v1, external: true}
+    sonarr_db_password: {name: mediarr_sonarr_db_password_v1, external: true}
+    recyclarr_secrets: {name: mediarr_recyclarr_secrets_v1, external: true}
 
 networks:
     mediarr-net: {driver: overlay}
