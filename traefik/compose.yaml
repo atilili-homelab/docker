@@ -63,4 +63,4 @@ configs:
 
 secrets:
     traefik_cloudflare_api_token: {name: traefik_cloudflare_api_token_v1, external: true}
-    crowdsec_bouncer_key_traefik: {external: true}
+    crowdsec_bouncer_key_traefik: {name: crowdsec_bouncer_key_traefik_v1, external: true}
