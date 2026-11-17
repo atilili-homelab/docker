@@ -76,9 +76,9 @@ configs:
     file_env: {name: ntfy_file_env_v1, file: ../_shared/file-env.sh}
 
 secrets:
-    ntfy_db_password: {external: true}
-    ntfy_public_key: {external: true}
-    ntfy_private_key: {external: true}
+    ntfy_db_password: {name: ntfy_db_password_v1, external: true}
+    ntfy_public_key: {name: ntfy_web_push_public_key_v1, external: true}
+    ntfy_private_key: {name: ntfy_web_push_private_key_v1, external: true}
 
 networks:
     traefik-wan: {external: true}
