@@ -119,20 +119,20 @@ configs:
     template_event_txt: {name: authelia_template_event_txt_v1, file: ./templates/Event.txt}
 
 secrets:
-    authelia_postgres_password: {external: true}
-    authelia_db_password: {external: true}
-    authelia_ldap_password: {external: true}
-    authelia_reset_password_jwt_secret: {external: true}
-    authelia_session_secret: {external: true}
-    authelia_storage_encryption_key: {external: true}
-    authelia_smtp_password: {external: true}
-    authelia_oidc_jwks_key: {external: true}
-    authelia_oidc_hmac_secret: {external: true}
+    authelia_postgres_password: {name: authelia_postgres_password_v1, external: true}
+    authelia_db_password: {name: authelia_db_password_v1, external: true}
+    authelia_ldap_password: {name: authelia_ldap_password_v1, external: true}
+    authelia_reset_password_jwt_secret: {name: authelia_reset_password_jwt_secret_v1, external: true}
+    authelia_session_secret: {name: authelia_session_secret_v1, external: true}
+    authelia_storage_encryption_key: {name: authelia_storage_encryption_key_v1, external: true}
+    authelia_smtp_password: {name: authelia_smtp_password_v1, external: true}
+    authelia_oidc_jwks_key: {name: authelia_oidc_jwks_key_v1, external: true}
+    authelia_oidc_hmac_secret: {name: authelia_oidc_hmac_secret_v1, external: true}
     authelia_duo_secret_key: {name: authelia_duo_secret_key_v1, external: true}
-    lldap_db_password: {external: true}
-    lldap_jwt_secret: {external: true}
-    lldap_key_seed: {external: true}
-    lldap_admin_password: {external: true}
+    lldap_db_password: {name: lldap_db_password_v1, external: true}
+    lldap_jwt_secret: {name: lldap_jwt_secret_v1, external: true}
+    lldap_key_seed: {name: lldap_key_seed_v1, external: true}
+    lldap_admin_password: {name: lldap_admin_password_v1, external: true}
 
 volumes:
     postgres:
