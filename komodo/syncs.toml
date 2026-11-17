@@ -1,4 +1,15 @@
 [[resource_sync]]
+name        = "Actions"
+description = "Synchro des actions"
+tags        = ["sync"]
+[resource_sync.config]
+linked_repo   = "docker"
+resource_path = ["komodo/actions.toml"]
+match_tags    = ["action"]
+
+##
+
+[[resource_sync]]
 name        = "Alerters"
 description = "Synchro des alerters"
 tags        = ["sync"]

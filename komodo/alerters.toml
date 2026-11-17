@@ -24,6 +24,7 @@ alert_types = [
     "ScheduleRun",
     "BuildFailed",
     "RepoBuildFailed",
+    "Custom",
 ]
 maintenance_windows = [
     { name = "Daily updates", description = "Updates automatique ", schedule_type = "Daily", hour = 3, minute = 0, duration_minutes = 60, enabled = true },

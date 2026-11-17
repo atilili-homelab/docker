@@ -1,0 +1,37 @@
+[[action]]
+name        = "Mailcow update check"
+description = "Notifie quand une nouvelle release de Mailcow est publiée"
+tags        = ["action"]
+[action.config]
+schedule_format = "Cron"
+schedule = "0 12 * * *"
+schedule_timezone = "Europe/Paris"
+schedule_alert = false
+failure_alert = true
+file_contents = '''
+// update.sh exige root même pour --check-tags : on reproduit sa logique en lecture seule
+const command =
+  "cd /opt/mailcow-dockerized && " +
+  "latest=$(git ls-remote --quiet --tags origin | tail -1 | cut -f1) && " +
+  'if git log HEAD --pretty=format:%H | grep -q "$latest"; ' +
+  'then echo "MAILCOW_UPDATE=no"; ' +
+  'else echo "MAILCOW_UPDATE=yes $(git ls-remote --quiet --tags origin | tail -1 | cut -f2)"; fi';
+
+const lines: string[] = [];
+await komodo.execute_server_terminal(
+  { server: "persephone", command, init: { command: "bash" } },
+  { onLine: (line) => { lines.push(line); }, onFinish: () => {} },
+);
+
+const result = lines.find((line) => line.startsWith("MAILCOW_UPDATE="));
+if (!result) {
+  throw new Error("Vérification Mailcow impossible :\n" + lines.join("\n"));
+}
+if (result.startsWith("MAILCOW_UPDATE=yes")) {
+  await komodo.execute("SendAlert", {
+    level: "WARNING",
+    message: "Mailcow : nouvelle release disponible",
+    details: result.replace("MAILCOW_UPDATE=yes ", "") + " — lancer update.sh sur persephone",
+  });
+}
+'''
