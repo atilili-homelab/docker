@@ -30,7 +30,6 @@ providers:
   swarm:
     endpoint: tcp://socket-proxy:2375
     exposedByDefault: false
-    network: traefik-public
   file:
     directory: /dynamic
 

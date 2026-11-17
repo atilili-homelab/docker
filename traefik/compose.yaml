@@ -37,7 +37,7 @@ services:
         ports:
         - {target: 80, published: 80, mode: host}
         - {target: 443, published: 443, mode: host}
-        networks: [traefik-proxy, traefik-lan, traefik-wan, traefik-public, crowdsec-bouncer]
+        networks: [traefik-proxy, traefik-lan, traefik-wan, crowdsec-bouncer]
         healthcheck: {!!merge <<: *healthcheck, test: traefik healthcheck --ping}
         deploy:
             mode: global
@@ -53,13 +53,12 @@ networks:
     traefik-lan: {name: traefik-lan, driver: overlay}
     traefik-wan: {name: traefik-wan, driver: overlay}
     traefik-proxy: {driver: overlay}
-    traefik-public: {external: true}
     crowdsec-bouncer: {external: true}
 
 configs:
-    middlewares: {name: traefik_middlewares_v3, file: ./middlewares.yml}
+    middlewares: {name: traefik_middlewares_v4, file: ./middlewares.yml}
     external: {name: traefik_external_v3, file: ./external.yml}
-    static: {name: traefik_static_v1, file: ./traefik.yml}
+    static: {name: traefik_static_v2, file: ./traefik.yml}
 
 secrets:
     traefik_cloudflare_api_token: {name: traefik_cloudflare_api_token_v1, external: true}
