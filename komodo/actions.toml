@@ -27,11 +27,12 @@ const result = lines.find((line) => line.startsWith("MAILCOW_UPDATE="));
 if (!result) {
   throw new Error("Vérification Mailcow impossible :\n" + lines.join("\n"));
 }
+console.log(result);
 if (result.startsWith("MAILCOW_UPDATE=yes")) {
   await komodo.execute("SendAlert", {
     level: "WARNING",
     message: "Mailcow : nouvelle release disponible",
-    details: result.replace("MAILCOW_UPDATE=yes ", "") + " — lancer update.sh sur persephone",
+    details: result.replace("MAILCOW_UPDATE=yes ", "") + " — lancer sudo update.sh sur persephone",
   });
 }
 '''
