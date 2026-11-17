@@ -48,10 +48,10 @@ volumes:
     komodo_db: {driver_opts: {type: none, o: bind, device: /data/komodo/db}}
 
 secrets:
-    komodo_db_password: {external: true}
-    komodo_oidc_client_secret: {external: true}
-    komodo_webhook_secret: {external: true}
-    komodo_private_key: {external: true}
+    komodo_db_password: {name: komodo_db_password_v1, external: true}
+    komodo_oidc_client_secret: {name: komodo_oidc_client_secret_v1, external: true}
+    komodo_webhook_secret: {name: komodo_webhook_secret_v1, external: true}
+    komodo_private_key: {name: komodo_private_key_v1, external: true}
 
 networks:
     komodo-net: {driver: overlay}
