@@ -84,8 +84,8 @@ configs:
     console: {name: crowdsec_console_v1, file: ./console.yaml}
 
 secrets:
-    crowdsec_db_password: {external: true}
-    crowdsec_bouncer_key_traefik: {external: true}
+    crowdsec_db_password: {name: crowdsec_db_password_v1, external: true}
+    crowdsec_bouncer_key_traefik: {name: crowdsec_bouncer_key_traefik_v1, external: true}
 
 networks:
     crowdsec-net: {driver: overlay}
