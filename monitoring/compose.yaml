@@ -231,10 +231,10 @@ configs:
     alloy_config: {name: monitoring_alloy_config_v4, file: ./config.alloy}
 
 secrets:
-    pve_exporter_config: {external: true}
-    grafana_db_password: {external: true}
-    grafana_admin_password: {external: true}
-    gatus_push_token: {external: true}
+    pve_exporter_config: {name: pve_exporter_config_v1, external: true}
+    grafana_db_password: {name: grafana_db_password_v1, external: true}
+    grafana_admin_password: {name: grafana_admin_password_v1, external: true}
+    gatus_push_token: {name: gatus_push_token_v1, external: true}
 
 volumes:
     prometheus: {driver_opts: {type: none, o: bind, device: /data/local/prometheus}}
