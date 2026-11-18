@@ -170,6 +170,14 @@ identity_providers:
         pkce_challenge_method: S256
         redirect_uris: [https://pve.macopla.com]
 
+      # TECHNITIUM DNS
+      - client_id: technitium
+        client_name: Technitium
+        client_secret: "$pbkdf2-sha512$310000$qXkie3eA14QILE3/sAFGYw$xRHiJV3SpqGPJ5LbipeTaSQiHIIfPw1mDGpN3GRRzPVY3ptie93m1p6tX1dvSG2GhXpzAJhqqabjzxpJQ3zIww"
+        authorization_policy: "admins"
+        pkce_challenge_method: S256
+        redirect_uris: [https://dns.macopla.com/sso/callback]
+
       # TRACEARR
       - client_id: tracearr
         client_name: Tracearr
