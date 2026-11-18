@@ -154,6 +154,14 @@ identity_providers:
         token_endpoint_auth_method: "client_secret_post"
         redirect_uris: [https://webmail.macopla.com]
 
+      # PROXMOX BACKUP SERVER
+      - client_id: pbs
+        client_name: PBS
+        client_secret: "$pbkdf2-sha512$310000$AkvFKP8RytfuwyPheWmb0w$1X6Lk/ulyxUJOigiT58VJzL4Ttq5RT5MwDyZZhF/StrpH68.Nn5epwaqhKu3cLa11X9Jv9b6kAcAUeSnttAGDA"
+        authorization_policy: "admins"
+        pkce_challenge_method: S256
+        redirect_uris: [https://pbs.macopla.com]
+
       # TRACEARR
       - client_id: tracearr
         client_name: Tracearr
