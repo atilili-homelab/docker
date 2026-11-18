@@ -154,6 +154,15 @@ identity_providers:
         token_endpoint_auth_method: "client_secret_post"
         redirect_uris: [https://webmail.macopla.com]
 
+      # OPENBAO
+      - client_id: openbao
+        client_name: Openbao
+        client_secret: "$pbkdf2-sha512$310000$dEntjoY5Gkqz366Blsidrw$iKSe7GGnNE23/QG4KglKwwDYA9m77Bf11fnynsrwf2c/ZFnYnE2YgJTlsAowIMeYh8E0tUuRSy9lJNsaKlneOQ"
+        authorization_policy: "admins"
+        pkce_challenge_method: S256
+        redirect_uris:
+          - https://bao.macopla.com:8200/ui/vault/auth/oidc/oidc/callback
+
       # PROXMOX BACKUP SERVER
       - client_id: pbs
         client_name: PBS
