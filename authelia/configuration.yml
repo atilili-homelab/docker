@@ -171,6 +171,14 @@ identity_providers:
         pkce_challenge_method: S256
         redirect_uris: [https://pbs.macopla.com]
 
+      # PROXMOX DATACENTER MANAGER
+      - client_id: pdm
+        client_name: PDM
+        client_secret: "$pbkdf2-sha512$310000$Zr3IORhbjD9wse2L7gLq2g$Ch2g4XNMhuNHdIyvfjhffB7MXUMAv7KTM47bteSYLwLphvkvQAfijrFfQ18yzlhbld6trQyS8A8BM4EuwqZSYg"
+        authorization_policy: "admins"
+        pkce_challenge_method: S256
+        redirect_uris: [https://pdm.macopla.com]
+
       # PROXMOX VE
       - client_id: pve
         client_name: PVE
