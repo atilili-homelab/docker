@@ -120,6 +120,17 @@ identity_providers:
           - https://forge.macopla.com/user/oauth2/authelia/callback
         scopes: [openid, profile, email]
 
+      # GRAFANA
+      - client_id: grafana
+        client_name: Grafana
+        client_secret: "$pbkdf2-sha512$310000$Hm5xBSlzXC17WfnFHrfJ5A$eFiWg/KNjjWq49jK89nyF.N6.jvKemd48ATfD.OzV/pgYvRDGyJQPZAXwJARTAHzcZcvnR4bFi/FkxyfqDVDxA"
+        authorization_policy: "admins"
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          - https://grafana.macopla.com/login/generic_oauth
+        scopes: [openid, profile, email, groups]
+
       # IMMICH
       - client_id: immich
         client_name: Immich
