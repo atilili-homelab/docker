@@ -1,7 +1,4 @@
 ---
-###############################################################################
-##                           Authelia Configuration                          ##
-###############################################################################
 server:
   address: tcp://:9091
   asset_path: /config/assets/
@@ -75,6 +72,9 @@ duo_api:
 
 identity_providers:
   oidc:
+    claims_policies:
+      grafana:
+        id_token: [email, name, groups, preferred_username]
     authorization_policies:
       admins:
         default_policy: deny
@@ -105,7 +105,6 @@ identity_providers:
         client_name: Bookstack
         client_secret: "$pbkdf2-sha512$310000$URwYQaGFEHT/tcti0IYbnw$Xi.2uVTajZoqYJswNkigiury25rkNIheAXqd5ui.PbQfmybmzu4xfgiS5XmZZfiErrqlPVNaeVZ90evcdzhhHA"
         authorization_policy: "family_friends"
-        require_pkce: true
         pkce_challenge_method: S256
         redirect_uris: [https://wiki.macopla.com/oidc/callback]
 
@@ -114,45 +113,38 @@ identity_providers:
         client_name: Forgejo
         client_secret: "$pbkdf2-sha512$310000$Ze1/C2GjijY2jja6LoVIow$WVmtPbFVvbrSpP58Tf2v3XmRkAi247NtI8aJn9nKYJjBtkAOVn7jiTXPm.6.J.R/bNK5eJmomNrJLQG9nLMM1w"
         authorization_policy: "admins"
-        require_pkce: true
         pkce_challenge_method: S256
         redirect_uris:
           - https://forge.macopla.com/user/oauth2/authelia/callback
-        scopes: [openid, profile, email]
 
       # GRAFANA
       - client_id: grafana
         client_name: Grafana
         client_secret: "$pbkdf2-sha512$310000$Hm5xBSlzXC17WfnFHrfJ5A$eFiWg/KNjjWq49jK89nyF.N6.jvKemd48ATfD.OzV/pgYvRDGyJQPZAXwJARTAHzcZcvnR4bFi/FkxyfqDVDxA"
         authorization_policy: "admins"
-        require_pkce: true
         pkce_challenge_method: S256
         redirect_uris:
           - https://grafana.macopla.com/login/generic_oauth
-        scopes: [openid, profile, email, groups]
+        claims_policy: grafana
 
       # IMMICH
       - client_id: immich
         client_name: Immich
         client_secret: "$pbkdf2-sha512$310000$iLjtT/kKbVgA74WhGyOGPA$vROnohRly7QhzRREel8TLsiURAruVapGJT0HgJgUfSre45uh2HDeHdzwlG6RSAkE2jqessUGXSXaFWPXpT65.g"
         authorization_policy: "family_only"
-        require_pkce: true
         pkce_challenge_method: S256
         redirect_uris:
           - https://photo.macopla.com/auth/login
           - https://photo.macopla.com/user-settings
           - app.immich:///oauth-callback
-        scopes: [openid, profile, email]
 
       # KOMODO
       - client_id: komodo
         client_name: Komodo
         client_secret: "$pbkdf2-sha512$310000$PJCVtk8xLKyREjB1tEytLA$MwowVdpooyD.LPcWodAvwO5OjdsAHi9w1Z2xE9BbohRGiqlFfya42eu2UDYJ4BMlv1GIJ4F4ExyrzTGo64C5xw"
         authorization_policy: "admins"
-        require_pkce: true
         pkce_challenge_method: S256
         redirect_uris: [https://komodo.macopla.com/auth/oidc/callback]
-        scopes: [openid, profile, email]
 
       # MAILCOW (league/oauth2-client : pas de PKCE, secret envoyé dans le corps)
       - client_id: mailcow
@@ -161,28 +153,23 @@ identity_providers:
         authorization_policy: "family_only"
         token_endpoint_auth_method: "client_secret_post"
         redirect_uris: [https://webmail.macopla.com]
-        scopes: [openid, profile, email]
 
       # TRACEARR
       - client_id: tracearr
         client_name: Tracearr
         client_secret: "$pbkdf2-sha512$310000$WLnXBKyzHEtZfXjWos4ZlA$ErpizY9h8Zhql65YNqLAg9xPh3SGSj5s/3TKSuyHvWGWNjmLdBGvalQ0vngGgeMI.AnixfjQNxqXl8vcQFcLOQ"
         authorization_policy: "admins"
-        require_pkce: true
         pkce_challenge_method: S256
         token_endpoint_auth_method: "client_secret_post"
         redirect_uris:
           - https://tracearr.macopla.com/api/v1/auth/oauth2/callback/oidc
-        scopes: [openid, profile, email]
 
       # VAULTWARDEN
       - client_id: vaultwarden
         client_name: Vaultwarden
         client_secret: "$pbkdf2-sha512$310000$01NoUVbyU2er528aHbnN6Q$rRBeCHXBvWKiDPdrBx6Mrn6YZy5y/pYLltzW.MILMm7rEGlegnaH67KKbNAVT.KKVeohr7FvgjKjYYQuxlHutw"
         authorization_policy: "family_only"
-        require_pkce: true
         pkce_challenge_method: S256
-        response_types: [code]
         redirect_uris: [https://vault.macopla.com/identity/connect/oidc-signin]
         scopes: [openid, offline_access, profile, email]
         grant_types: [authorization_code, refresh_token]
