@@ -36,3 +36,36 @@ if (result.startsWith("MAILCOW_UPDATE=yes")) {
   });
 }
 '''
+
+##
+
+[[action]]
+name        = "Technitium update check"
+description = "Notifie quand une nouvelle version de Technitium DNS est publiée"
+tags        = ["action"]
+[action.config]
+schedule_format = "Cron"
+schedule = "0 0 12 * * *"
+schedule_timezone = "Europe/Paris"
+schedule_alert = false
+failure_alert = true
+file_contents = '''
+const response = await fetch("http://10.86.30.40:5380/api/user/checkForUpdate", {
+  headers: { Authorization: "Bearer [[TECHNITIUM_TOKEN]]" },
+});
+const body = await response.json();
+// L'API répond HTTP 200 même en erreur (token invalide…) : seul `status` fait foi
+if (body.status !== "ok") {
+  throw new Error("Vérification Technitium impossible : " + JSON.stringify(body));
+}
+
+const update = body.response;
+console.log(`currentVersion=${update.currentVersion} updateAvailable=${update.updateAvailable}`);
+if (update.updateAvailable) {
+  await komodo.execute("SendAlert", {
+    level: "WARNING",
+    message: "Technitium : nouvelle version disponible",
+    details: `${update.currentVersion} → ${update.updateVersion} — lancer dns-setup.yml -e technitium_dns_update=true`,
+  });
+}
+'''
