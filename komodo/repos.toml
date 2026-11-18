@@ -7,15 +7,3 @@ server       = "neo"
 git_provider = "forge.macopla.com"
 git_account  = "komodo"
 repo         = "homelab/docker"
-
-##
-
-[[repo]]
-name        = "homelab"
-description = "Gitlab repository"
-tags        = ["repo"]
-[repo.config]
-server       = "neo"
-git_provider = "gitlab.com"
-git_account  = "Atilil"
-repo         = "atilili/homelab"
