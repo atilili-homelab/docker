@@ -162,6 +162,14 @@ identity_providers:
         pkce_challenge_method: S256
         redirect_uris: [https://pbs.macopla.com]
 
+      # PROXMOX VE
+      - client_id: pve
+        client_name: PVE
+        client_secret: "$pbkdf2-sha512$310000$mF.lAASziGrsZ2IvrkEctw$h.b7yKprE/7UOJhcvTbaWnPMgPYAgo/q1eI/TXyF4NlVokkF.MPD9xNIvugNgTgCWJt9LozMSm9yz0rV1zpMfA"
+        authorization_policy: "admins"
+        pkce_challenge_method: S256
+        redirect_uris: [https://pve.macopla.com]
+
       # TRACEARR
       - client_id: tracearr
         client_name: Tracearr
