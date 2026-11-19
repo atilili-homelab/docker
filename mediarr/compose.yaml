@@ -13,6 +13,10 @@ x-healthcheck: &healthcheck
     start_period: 30s
     retries: 3
 
+x-waitfor: &waitfor
+    entrypoint: [/waitfor.sh, 'mediarr-db:5432', --, /init]
+    configs: [{source: waitfor, target: /waitfor.sh, mode: 0555}]
+
 x-radarr: &radarr
     RADARR__POSTGRES__HOST: mediarr-db
     RADARR__POSTGRES__USER: radarr
@@ -44,6 +48,7 @@ services:
 
     prowlarr:
         image: linuxserver/prowlarr:2.6.5.5623-ls162@sha256:f2b26429893d4c4cb71941b7ee50b1bdecd9d5f9f9e02d5410615e9f4f7c8d95
+        !!merge <<: *waitfor
         environment:
             !!merge <<: *env
             PROWLARR__POSTGRES__HOST: mediarr-db
@@ -65,7 +70,7 @@ services:
 
     seerr:
         image: seerr/seerr:v3.5.2@sha256:aadee014b40e28cf9aa4928bc9d1183a6eb08f8c44d543cddc9efdcb16549be2
-        entrypoint: [/file-env.sh, docker-entrypoint.sh]
+        entrypoint: [/waitfor.sh, 'mediarr-db:5432', --, /file-env.sh, docker-entrypoint.sh]
         command: [npm, start]
         init: true
         environment:
@@ -75,7 +80,9 @@ services:
             DB_NAME: seerr
             DB_USER: seerr
             DB_PASS_FILE: /run/secrets/seerr_db_password
-        configs: [{source: file_env, target: /file-env.sh, mode: 0555}]
+        configs:
+        - {source: file_env, target: /file-env.sh, mode: 0555}
+        - {source: waitfor, target: /waitfor.sh, mode: 0555}
         volumes: ['seerr_config:/app/config']
         secrets: [seerr_db_password]
         networks: [mediarr-net, mediarr-db, traefik-wan]
@@ -110,6 +117,7 @@ services:
 
     radarrhd:
         image: linuxserver/radarr:6.4.4.10685-ls318@sha256:adb6c09d6b729ea5e642c99cea35af72702ef476bf4763f153299ac5db9f0b4f
+        !!merge <<: *waitfor
         environment:
             !!merge <<: [*env, *radarr]
             RADARR__POSTGRES__MAINDB: radarrhd-main
@@ -128,6 +136,7 @@ services:
 
     radarr4k:
         image: linuxserver/radarr:6.4.4.10685-ls318@sha256:adb6c09d6b729ea5e642c99cea35af72702ef476bf4763f153299ac5db9f0b4f
+        !!merge <<: *waitfor
         environment:
             !!merge <<: [*env, *radarr]
             RADARR__POSTGRES__MAINDB: radarr4k-main
@@ -146,6 +155,7 @@ services:
 
     sonarrhd:
         image: linuxserver/sonarr:4.0.20.3014-ls326@sha256:f247545d23ba8b233d6604575347e48a623fe6ad75dda02348bf81917f3b5c06
+        !!merge <<: *waitfor
         environment:
             !!merge <<: [*env, *sonarr]
             SONARR__POSTGRES__MAINDB: sonarrhd-main
@@ -164,6 +174,7 @@ services:
 
     sonarr4k:
         image: linuxserver/sonarr:4.0.20.3014-ls326@sha256:f247545d23ba8b233d6604575347e48a623fe6ad75dda02348bf81917f3b5c06
+        !!merge <<: *waitfor
         environment:
             !!merge <<: [*env, *sonarr]
             SONARR__POSTGRES__MAINDB: sonarr4k-main
@@ -182,6 +193,7 @@ services:
 
     bazarr:
         image: linuxserver/bazarr:v1.5.6-ls342@sha256:9a631194c0dee21c85b5bff59e23610e1ae2f54594e922973949d271102e585e
+        !!merge <<: *waitfor
         environment:
             !!merge <<: *env
             POSTGRES_ENABLED: 'true'
@@ -227,6 +239,7 @@ volumes:
 
 configs:
     file_env: {name: mediarr_file_env_v1, file: ../_shared/file-env.sh}
+    waitfor: {name: mediarr_waitfor_v1, file: ../_shared/waitfor.sh}
     mediarr_init_db: {name: mediarr_init_db_v1, file: ./init-db.sh}
     recyclarr: {name: mediarr_recyclarr_v1, file: ./recyclarr.yml}
 
