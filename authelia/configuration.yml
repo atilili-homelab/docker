@@ -171,6 +171,14 @@ identity_providers:
         pkce_challenge_method: S256
         redirect_uris: [https://pbs.macopla.com]
 
+      # PROXMOX BACKUP SERVER - GUI
+      - client_id: pbs_gui
+        client_name: PBS_GUI
+        client_secret: "$pbkdf2-sha512$310000$wwe5OwE2ynYouSj0RM/DYQ$SlazxStCV5x0jptyD9CcZtcxCcn3ON2KTE3i.Y0w64eyAKoUwtQ0IWcn7GfgDMioR2sJIdl3arSJfws3LMhltA"
+        authorization_policy: "admins"
+        pkce_challenge_method: S256
+        redirect_uris: [https://pbs.lecareux.fr]
+
       # PROXMOX DATACENTER MANAGER
       - client_id: pdm
         client_name: PDM
@@ -186,6 +194,14 @@ identity_providers:
         authorization_policy: "admins"
         pkce_challenge_method: S256
         redirect_uris: [https://pve.macopla.com]
+
+      # PROXMOX VE - GUK
+      - client_id: pve_gui
+        client_name: PVE_GUI
+        client_secret: "$pbkdf2-sha512$310000$rT/jbRVtgzZVhXQ2XkS0oA$iiAB.DYt0vDM88lCyhVTvpATYdrspvHkX0UZ2PqY0AdZ3ueIoKPEiua5JcmsVyJmVprDK8/JOLTfwqZRHIhRrw"
+        authorization_policy: "admins"
+        pkce_challenge_method: S256
+        redirect_uris: [https://proxmox.lecareux.fr]
 
       # TECHNITIUM DNS
       - client_id: technitium
