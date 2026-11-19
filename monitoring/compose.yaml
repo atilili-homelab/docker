@@ -123,6 +123,7 @@ services:
 
     grafana:
         image: grafana/grafana:13.3.1@sha256:0615ec4fbd4072004b7d86b46ded63013a74b7d6eb1119273dd89e8fa25c13cf
+        entrypoint: [/waitfor.sh, 'grafana-db:5432', --, /run.sh]
         env_file: [./grafana.env]
         secrets:
         - grafana_db_password
@@ -133,6 +134,7 @@ services:
         - {source: grafana_datasources, target: /etc/grafana/provisioning/datasources/datasources.yml}
         - {source: grafana_alerting, target: /etc/grafana/provisioning/alerting/alerting.yml}
         - {source: grafana_alert_rules, target: /etc/grafana/provisioning/alerting/rules.yml}
+        - {source: waitfor, target: /waitfor.sh, mode: 0555}
         volumes: ['grafana:/var/lib/grafana']
         # traefik-lan sert aussi à joindre notify_apprise en direct (voir grafana-alerting.yml)
         networks: [monitoring-net, grafana-db-net, traefik-lan]
@@ -219,6 +221,7 @@ configs:
     grafana_alert_rules: {name: monitoring_grafana_alert_rules_v4, file: ./grafana-alert-rules.yml}
     loki_config: {name: monitoring_loki_config_v1, file: ./loki.yml}
     alloy_config: {name: monitoring_alloy_config_v4, file: ./config.alloy}
+    waitfor: {name: monitoring_waitfor_v1, file: ../_shared/waitfor.sh}
 
 secrets:
     pve_exporter_config: {name: pve_exporter_config_v1, external: true}
