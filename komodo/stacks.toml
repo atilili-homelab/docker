@@ -132,7 +132,6 @@ tags        = ["stack"]
 swarm         = "Prod Swarm"
 linked_repo   = "docker"
 run_directory = "mediarr"
-config_files  = [{ path = "cinesync.env", requires = "Redeploy" }]
 
 ##
 

@@ -26,7 +26,6 @@ description = "Serveur Jellyfin"
 tags = ["server", "media", "critical"]
 [server.config]
 enabled = true
-ignore_mounts = ["/mnt/UNIFIED"]
 mem_warning = 90.0
 mem_critical = 99.0
 
@@ -38,7 +37,6 @@ description = "Serveur seedbox"
 tags = ["server", "media"]
 [server.config]
 enabled = true
-ignore_mounts = ["/mnt/UNIFIED"]
 mem_warning = 90.0
 mem_critical = 99.0
 

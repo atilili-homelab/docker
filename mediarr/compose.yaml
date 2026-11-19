@@ -97,25 +97,6 @@ services:
                 traefik.http.services.seerr.loadbalancer.server.port: 5055
         healthcheck: {!!merge <<: *healthcheck, test: 'wget --no-verbose --tries=1 --spider http://127.0.0.1:5055/api/v1/status || exit 1'}
 
-    cinesync:
-        image: sureshfizzy/cinesync:v3.2.2-alpha@sha256:36a27b1403e81cb7536e91f7991e2259c136037d0b5bcf0d1688783929b02708
-        env_file: [./cinesync.env]
-        environment: *env
-        ulimits: {nofile: 65536}
-        volumes:
-        - cinesync_db:/app/db
-        - /mnt/UNIFIED:/mnt/UNIFIED:ro,rslave
-        - /mnt/SYMLINKS:/mnt/SYMLINKS
-        networks: [mediarr-net, traefik-lan]
-        deploy:
-            !!merge <<: *deploy
-            labels:
-                !!merge <<: *lan
-                traefik.http.routers.cinesync.rule: Host(`cinesync.macopla.com`)
-                traefik.http.routers.cinesync.middlewares: lan-sso@file
-                traefik.http.services.cinesync.loadbalancer.server.port: 8082
-        healthcheck: {!!merge <<: *healthcheck, test: ['CMD-SHELL', 'curl -f http://127.0.0.1:8082/status'], start_period: 120s, retries: 6}
-
     radarrhd:
         image: linuxserver/radarr:6.4.4.10685-ls318@sha256:adb6c09d6b729ea5e642c99cea35af72702ef476bf4763f153299ac5db9f0b4f
         !!merge <<: *waitfor
@@ -235,7 +216,6 @@ volumes:
     sonarr4k_config: {driver_opts: {type: none, o: bind, device: /data/sonarr4k}}
     bazarr_config: {driver_opts: {type: none, o: bind, device: /data/bazarr}}
     recyclarr_config: {driver_opts: {type: none, o: bind, device: /data/recyclarr}}
-    cinesync_db: {driver_opts: {type: none, o: bind, device: /data/cinesync/db}}
     mediarr_db: {driver_opts: {type: none, o: bind, device: /data/mediarr/db}}
 
 configs:
