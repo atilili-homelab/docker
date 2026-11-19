@@ -11,7 +11,7 @@ x-healthcheck: &healthcheck
 services:
     authelia:
         image: authelia/authelia:4.39.28@sha256:bd97cff4fcbf715b5ff1f9ae286afbe6033afce385302520b0368122d43a6f54
-        entrypoint: [/waitfor.sh, 'authelia_postgres:5432', 'authelia_lldap:3890', --, /app/entrypoint.sh]
+        entrypoint: [/waitfor.sh, 'authelia-db:5432', 'authelia_lldap:3890', --, /app/entrypoint.sh]
         user: 1000:1000
         env_file: [./authelia.env]
         environment: [TZ=Europe/Paris]
@@ -56,7 +56,7 @@ services:
         - tini
         - --
         - /waitfor.sh
-        - authelia_postgres:5432
+        - authelia-db:5432
         - --
         - /bin/sh
         - -c
@@ -86,9 +86,9 @@ services:
             !!merge <<: *healthcheck
             test: ['CMD', '/app/lldap', 'healthcheck', '--config-file', '/data/lldap_config.toml']
 
-    postgres:
+    authelia-db:
         image: postgres:18.7-trixie@sha256:e754b839f447639b7004895f4d8a4bfcb4e9dbe3a1bc035f27f646562a16fd61
-        labels: {backup.db.engine: postgres, backup.db.user: postgres, backup.db.name: authelia}
+        labels: {backup.db.engine: postgres, backup.db.user: postgres}
         command: [postgres, -c, 'timezone=Europe/Paris', -c, 'log_timezone=Europe/Paris']
         environment: [POSTGRES_PASSWORD_FILE=/run/secrets/authelia_postgres_password]
         configs: [{source: initdb, target: /docker-entrypoint-initdb.d/initdb.sh}]
@@ -96,7 +96,7 @@ services:
         - authelia_postgres_password
         - authelia_db_password
         - lldap_db_password
-        volumes: ['postgres:/var/lib/postgresql']
+        volumes: ['authelia_db:/var/lib/postgresql']
         networks: [authelia-net]
         deploy:
             !!merge <<: *deploy
@@ -107,7 +107,7 @@ services:
             test: ['CMD-SHELL', 'pg_isready -U postgres']
 
 configs:
-    configuration: {name: authelia_configuration_v30, file: ./configuration.yml}
+    configuration: {name: authelia_configuration_v31, file: ./configuration.yml}
     initdb: {name: authelia_initdb_v1, file: ./initdb.sh}
     waitfor: {name: authelia_waitfor_v2, file: ../_shared/waitfor.sh}
     logo: {name: authelia_logo_v1, file: ./assets/logo.png}
@@ -136,8 +136,7 @@ secrets:
     lldap_admin_password: {name: lldap_admin_password_v1, external: true}
 
 volumes:
-    postgres:
-        driver_opts: {type: none, o: bind, device: /data/authelia/db}
+    authelia_db: {driver_opts: {type: none, o: bind, device: /data/authelia/db}}
 
 networks:
     authelia-net: {driver: overlay}

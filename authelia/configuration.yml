@@ -33,7 +33,7 @@ session:
 
 storage:
   postgres:
-    address: tcp://authelia_postgres:5432
+    address: tcp://authelia-db:5432
     database: authelia
     username: authelia
 
