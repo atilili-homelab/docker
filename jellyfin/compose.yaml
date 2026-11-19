@@ -14,8 +14,9 @@ services:
         - jellyfin-cache:/cache
         - /mnt/SYMLINKS:/mnt/SYMLINKS
         - /mnt/jellyfin:/mnt/jellyfin
-        # rslave for mergerfs so that the mountpoint is not hidden until the container is restarted
+        # rslave: mergerfs and NFS automounts show up without restarting the container
         - {type: bind, source: /mnt/UNIFIED, target: /mnt/UNIFIED, read_only: true, bind: {propagation: rslave}}
+        - {type: bind, source: /mnt/NAS-EXT, target: /mnt/NAS-EXT, read_only: true, bind: {propagation: rslave}}
         networks: [default, ldap-network]
         ports: ['8096:8096']
         healthcheck: {test: curl -f http://127.0.0.1:8096/health || exit 1, timeout: 10s, start_period: 60s}
