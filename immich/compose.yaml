@@ -6,6 +6,8 @@ x-deploy: &deploy
 services:
     immich-server:
         image: altran1502/immich-server:v3.4.1@sha256:7c489add298fc2f92cda4c777de6462aa206877e04087b815f62c7664af0b53b
+        entrypoint: [tini, --, /waitfor.sh, 'immich-db:5432', 'immich-redis:6379', --, /bin/bash, -c]
+        command: [start.sh]
         environment:
             TZ: Europe/Paris
             DB_HOSTNAME: immich-db
@@ -19,7 +21,9 @@ services:
             IMMICH_HELMET_FILE: 'true'
         secrets: [immich_db_password, immich_redis_password, immich_oidc_client_secret, immich_smtp_password]
         volumes: ['immich-upload:/usr/src/app/upload']
-        configs: [{source: config, target: /config/immich.yml}]
+        configs:
+        - {source: config, target: /config/immich.yml}
+        - {source: waitfor, target: /waitfor.sh, mode: 0555}
         networks: [traefik-wan, immich-net]
         user: '33:33'
         cap_drop: [NET_RAW]
@@ -91,6 +95,7 @@ volumes:
 
 configs:
     config: {name: immich_config_v1, file: ./config.yml, template_driver: golang}
+    waitfor: {name: immich_waitfor_v1, file: ../_shared/waitfor.sh}
 
 secrets:
     immich_db_password: {name: immich_db_password_v1, external: true}
