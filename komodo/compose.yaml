@@ -26,7 +26,13 @@ services:
 
     mongo:
         image: mongo:9.0.8@sha256:b0c835c26e5997413e985000f1013c275377cd9607761c1784d486f6dd620b7f
-        labels: [komodo.skip]
+        labels:
+            komodo.skip: ''
+            backup.db.engine: mongodb
+            backup.db.user: komodo
+            backup.db.name: komodo
+            backup.db.database: komodo
+            backup.db.auth_database: admin
         command: --quiet --wiredTigerCacheSizeGB 0.25
         volumes: ['komodo_db:/data/db']
         environment:

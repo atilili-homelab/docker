@@ -37,6 +37,7 @@ services:
 
     tracearr-db:
         image: timescale/timescaledb-ha:pg18.3-ts2.26.1@sha256:8bc847c61ebbf7333c219565fd3546c78f1f30597e31bda17a720078929d7a0d
+        labels: {backup.db.engine: postgres, backup.db.user: tracearr}
         command: postgres -c timescaledb.max_tuples_decompressed_per_dml_transaction=0 -c max_locks_per_transaction=4096
         environment:
             POSTGRES_USER: tracearr
