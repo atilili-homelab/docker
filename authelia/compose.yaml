@@ -108,7 +108,7 @@ services:
 configs:
     configuration: {name: authelia_configuration_v30, file: ./configuration.yml}
     initdb: {name: authelia_initdb_v1, file: ./initdb.sh}
-    waitfor: {name: authelia_waitfor_v1, file: ./waitfor.sh}
+    waitfor: {name: authelia_waitfor_v2, file: ../_shared/waitfor.sh}
     logo: {name: authelia_logo_v1, file: ./assets/logo.png}
     favicon: {name: authelia_favicon_v1, file: ./assets/favicon.ico}
     template_jwt_html: {name: authelia_template_jwt_html_v2, file: ./templates/IdentityVerificationJWT.html}
