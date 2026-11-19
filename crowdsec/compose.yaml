@@ -22,7 +22,7 @@ services:
 
     crowdsec:
         image: crowdsecurity/crowdsec:v1.8.2@sha256:65b74942f7e7ed5c60fde4ac15fc4ba715904c398c8b16dd451f4907d90347d4
-        entrypoint: [/file-env.sh, /bin/bash, /docker_start.sh]
+        entrypoint: [/waitfor.sh, 'crowdsec-db:5432', --, /file-env.sh, /bin/bash, /docker_start.sh]
         environment:
             TZ: Europe/Paris
             DOCKER_HOST: tcp://socket-proxy:2375
@@ -37,6 +37,7 @@ services:
         volumes: ['config:/etc/crowdsec', 'data:/var/lib/crowdsec/data']
         configs:
         - {source: file_env, target: /file-env.sh, mode: 0555}
+        - {source: waitfor, target: /waitfor.sh, mode: 0555}
         - {source: config_local, target: /etc/crowdsec/config.yaml.local}
         - {source: acquis, target: /etc/crowdsec/acquis.yaml}
         - {source: appsec, target: /etc/crowdsec/acquis.d/appsec.yaml}
@@ -76,6 +77,7 @@ volumes:
 
 configs:
     file_env: {name: crowdsec_file_env_v1, file: ../_shared/file-env.sh}
+    waitfor: {name: crowdsec_waitfor_v1, file: ../_shared/waitfor.sh}
     config_local: {name: crowdsec_config_local_v1, file: ./config.yaml.local}
     acquis: {name: crowdsec_acquis_v1, file: ./acquis.yaml}
     appsec: {name: crowdsec_appsec_v2, file: ./appsec.yaml}
