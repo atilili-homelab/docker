@@ -27,8 +27,9 @@ un « Deploy » simple : « Deploy if changed » ne voit plus de différence.
 
 En dernier recours, depuis un manager : `docker service rollback <stack>_<service>`.
 
-Éviter de modifier une base et son service dans le même déploiement : le service
-peut démarrer avant la base et partir en rollback.
+Une appli qui dépend d'une base démarre par `_shared/waitfor.sh` : il attend que
+la base réponde (60 s max) avant de lancer l'appli. Base et appli peuvent donc
+redémarrer dans le même déploiement sans partir en rollback.
 
 ## CI
 
