@@ -50,7 +50,7 @@ services:
             placement: {constraints: [node.labels.tier == apps]}
 
     immich-redis:
-        image: valkey/valkey:9@sha256:3ab0eca823ebbf0fe352476ebac330ac9e5f14b592b9a954eab296d341e81b0e
+        image: valkey/valkey:9@sha256:13010f40f0623c52f0d3527a48bbf059870e6864b4eee642cdabad3f5e240e69
         command: /bin/sh -c "valkey-server --requirepass $$(cat /run/secrets/immich_redis_password)"
         secrets: [immich_redis_password]
         volumes: ['immich-redis_redis:/data']
