@@ -156,7 +156,7 @@ services:
             start_period: 60s
 
     grafana-db:
-        image: postgres:19.0-trixie@sha256:bb6e70add742cd868fb62cb3b2f67d1dd2bdd2b65a521e778420748753687c60
+        image: postgres:18.7-trixie@sha256:e754b839f447639b7004895f4d8a4bfcb4e9dbe3a1bc035f27f646562a16fd61
         labels: {backup.db.engine: postgres, backup.db.user: grafana}
         environment:
             POSTGRES_USER: grafana
