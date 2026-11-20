@@ -29,7 +29,7 @@ services:
         healthcheck: {test: curl -f http://127.0.0.1:80/alive || exit 1, timeout: 10s, start_period: 10s}
 
     vaultwarden-db:
-        image: postgres:18.7-trixie@sha256:e754b839f447639b7004895f4d8a4bfcb4e9dbe3a1bc035f27f646562a16fd61
+        image: postgres:18.7-trixie@sha256:eb63372c1e05c755f55fa30cbd07aecc443676fc6c0fa90b9002d01537841e1a
         labels: {backup.db.engine: postgres, backup.db.user: vaultwarden}
         environment:
             POSTGRES_USER: vaultwarden
