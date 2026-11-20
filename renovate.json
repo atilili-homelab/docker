@@ -17,6 +17,16 @@
         "linuxserver/qbittorrent"
       ],
       "allowedVersions": "<10"
+    },
+    {
+      "description": "PostgreSQL : une version majeure exige pg_upgrade, la PR n'est créée qu'après approbation dans le Dependency Dashboard",
+      "matchPackageNames": [
+        "postgres"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "dependencyDashboardApproval": true
     }
   ]
 }
