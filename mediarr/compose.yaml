@@ -98,7 +98,7 @@ services:
         healthcheck: {!!merge <<: *healthcheck, test: 'wget --no-verbose --tries=1 --spider http://127.0.0.1:5055/api/v1/status || exit 1'}
 
     radarrhd:
-        image: linuxserver/radarr:6.4.4.10685-ls318@sha256:adb6c09d6b729ea5e642c99cea35af72702ef476bf4763f153299ac5db9f0b4f
+        image: linuxserver/radarr:6.4.4.10685-ls327@sha256:7a20f20de63706eee2ff6e4ac1f989a70c961f456aa47ccb6c78f2bb7657d9ae
         !!merge <<: *waitfor
         environment:
             !!merge <<: [*env, *radarr]
@@ -117,7 +117,7 @@ services:
         healthcheck: {!!merge <<: *healthcheck, test: 'curl -f http://127.0.0.1:7878/ping || exit 1'}
 
     radarr4k:
-        image: linuxserver/radarr:6.4.4.10685-ls318@sha256:adb6c09d6b729ea5e642c99cea35af72702ef476bf4763f153299ac5db9f0b4f
+        image: linuxserver/radarr:6.4.4.10685-ls327@sha256:7a20f20de63706eee2ff6e4ac1f989a70c961f456aa47ccb6c78f2bb7657d9ae
         !!merge <<: *waitfor
         environment:
             !!merge <<: [*env, *radarr]
