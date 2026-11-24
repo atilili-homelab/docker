@@ -16,7 +16,25 @@ services:
         - {type: bind, source: /mnt/NAS-EXT, target: /mnt/NAS-EXT, read_only: true, bind: {propagation: rslave}}
         networks: [default, ldap-network]
         ports: ['8096:8096']
-        healthcheck: {test: curl -f http://127.0.0.1:8096/health || exit 1, timeout: 10s, start_period: 60s}
+        healthcheck: {test: 'curl -f http://127.0.0.1:8096/health || exit 1', timeout: 10s, start_period: 60s}
         mem_limit: 6G
 
+    jellyfin-dev:
+        image: jellyfin/jellyfin:12.4@sha256:fea863d0cd9ec445985d9c75fc6ed64e38a1d2766cf0c250a33d553f4fc1b771
+        container_name: jellyfin-dev
+        restart: unless-stopped
+        user: 1000:1000
+        environment:
+            TZ: Europe/Paris
+            JELLYFIN_PublishedServerUrl: https://yoflix-dev.macopla.com
+        group_add: ['992']
+        volumes:
+        - /data/local/jellyfin-dev:/config
+        - /mnt/jellyfin:/mnt/jellyfin
+        # rslave: NFS automounts show up without restarting the container
+        - {type: bind, source: /mnt/NAS-EXT, target: /mnt/NAS-EXT, read_only: true, bind: {propagation: rslave}}
+        networks: [default, ldap-network]
+        ports: ['8097:8097']
+        healthcheck: {test: 'curl -f http://127.0.0.1:8097/health || exit 1', timeout: 10s, start_period: 60s}
+        mem_limit: 2G
 networks: {ldap-network: {external: true}}
