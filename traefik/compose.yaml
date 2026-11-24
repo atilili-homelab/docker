@@ -57,7 +57,7 @@ networks:
 
 configs:
     middlewares: {name: traefik_middlewares_v4, file: ./middlewares.yml}
-    external: {name: traefik_external_v3, file: ./external.yml}
+    external: {name: traefik_external_v4, file: ./external.yml}
     static: {name: traefik_static_v2, file: ./traefik.yml}
 
 secrets:
