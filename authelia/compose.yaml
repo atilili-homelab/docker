@@ -87,7 +87,7 @@ services:
             test: ['CMD', '/app/lldap', 'healthcheck', '--config-file', '/data/lldap_config.toml']
 
     authelia-db:
-        image: postgres:18.7-trixie@sha256:eb63372c1e05c755f55fa30cbd07aecc443676fc6c0fa90b9002d01537841e1a
+        image: postgres:18.7-trixie@sha256:a47637053e65dc7112aeb7353feb8b87954982ad5fd4524908c284d90d71b5e3
         labels: {backup.db.engine: postgres, backup.db.user: postgres}
         command: [postgres, -c, 'timezone=Europe/Paris', -c, 'log_timezone=Europe/Paris']
         environment: [POSTGRES_PASSWORD_FILE=/run/secrets/authelia_postgres_password]
