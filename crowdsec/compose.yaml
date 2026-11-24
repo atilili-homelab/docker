@@ -54,7 +54,7 @@ services:
         healthcheck: {test: [CMD, cscli, lapi, status], timeout: 5s, start_period: 30s}
 
     crowdsec-db:
-        image: postgres:18.7-trixie@sha256:a47637053e65dc7112aeb7353feb8b87954982ad5fd4524908c284d90d71b5e3
+        image: postgres:18.7-trixie@sha256:c699303802144847d238196173655dbbecf7a96aeca1565f2b02eb671a1f0b6b
         labels: {backup.db.engine: postgres, backup.db.user: crowdsec}
         command: [postgres, -c, 'timezone=Europe/Paris', -c, 'log_timezone=Europe/Paris']
         environment:
